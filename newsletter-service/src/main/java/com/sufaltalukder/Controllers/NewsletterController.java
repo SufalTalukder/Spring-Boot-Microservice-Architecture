@@ -21,25 +21,11 @@ public class NewsletterController {
 	private JwtUtil jwtUtil;
 
 	@GetMapping("/get-newsletter-subscription")
-	public ResponseEntity<ApiResponse<NewsletterDTO>> getNewsletterToggle(
-			@RequestHeader("authToken") String authToken) {
-		try {
-			long userId = jwtUtil.extractUserId(authToken);
+	public ResponseEntity<ApiResponse<NewsletterDTO>> getNewsletterToggle(@RequestParam long userId) {
 
-			ApiResponse<NewsletterDTO> response = newsletterService.getNewsletterToggle(userId);
+		ApiResponse<NewsletterDTO> response = newsletterService.getNewsletterToggle(userId);
 
-			if ("not found".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-			}
-			if ("not same".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-			}
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new ApiResponse<>("error", "Unauthorized access.", null));
-		}
+		return ResponseEntity.ok(response);
 	}
 
 	@PatchMapping("/update-newsletter-subscription")

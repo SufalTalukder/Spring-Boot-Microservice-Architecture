@@ -8,6 +8,7 @@ import com.sufaltalukder.Mappers.NewsletterMapper;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.NewsletterModel;
 import com.sufaltalukder.Repositories.NewsletterRepository;
+import com.sufaltalukder.feign.Services.UserFeignService;
 
 @Service
 public class NewsletterServiceImpl implements NewsletterService {
@@ -15,19 +16,16 @@ public class NewsletterServiceImpl implements NewsletterService {
 	@Autowired
 	private NewsletterRepository newsletterRepository;
 
+	@Autowired
+	private UserFeignService userFeignService; // feign service
+
 	@Override
 	public ApiResponse<NewsletterDTO> getNewsletterToggle(long userId) {
-		NewsletterModel existingNewsletter = newsletterRepository.findByUserId(userId);
 
-		if (existingNewsletter == null) {
-			return new ApiResponse<>("not found", "User not exist in newsletter record.", null);
-		}
-		if (existingNewsletter.getUserId() != userId) {
-			return new ApiResponse<>("not same", "User not same as newsletter user ID.", null);
-		}
+		// calling micro-service via feign client
+		ApiResponse<NewsletterDTO> response = userFeignService.getNewsletterSubscribed(userId);
 
-		return new ApiResponse<>("success", "User newsletter fetched successfully.",
-				NewsletterMapper.toDTO(existingNewsletter));
+		return new ApiResponse<>("success", "Newsletter fetched successfully.", response.getContent());
 	}
 
 	@Override
