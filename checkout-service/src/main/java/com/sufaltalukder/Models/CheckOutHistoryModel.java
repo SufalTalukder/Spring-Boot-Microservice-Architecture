@@ -30,6 +30,9 @@ public class CheckOutHistoryModel {
 	@Column(name = "add_to_cart_ids", nullable = false)
 	private String addToCartIds;
 
+	@Column(name = "product_ids")
+	private String productIds;
+
 	@Column(name = "payment_address", nullable = false)
 	private String paymentAddress;
 

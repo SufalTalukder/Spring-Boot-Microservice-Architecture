@@ -47,6 +47,20 @@ public class ProductAddToCartController {
 		}
 	}
 
+	// using for feign client
+	@GetMapping("/get-user-cart")
+	public ResponseEntity<ApiResponse<ProductAddToCartModel>> getUserCart(@RequestParam long addToCartId,
+			@RequestParam long userId) {
+
+		ApiResponse<ProductAddToCartModel> response = productAddToCartService.getUserCart(addToCartId, userId);
+
+		if ("not applicable".equals(response.getStatus())) {
+			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
+		}
+
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("/get-all-carts")
 	public ResponseEntity<PaginationApiResponse<List<ProductAddToCartDTO>>> getUserCarts(
 			@RequestHeader("authToken") String authToken, @RequestParam(defaultValue = "1") int pageNo,

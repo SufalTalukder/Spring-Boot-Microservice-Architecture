@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import com.sufaltalukder.DTOs.CheckOutHistoryDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CheckOutHistoryModel;
+import com.sufaltalukder.Models.NotificationModel;
 import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Services.CustomerPurchaseService;
 import com.sufaltalukder.Utils.JwtUtil;
-import com.sufaltalukder.feign.Services.AddToCartService;
+import com.sufaltalukder.feign.Services.AddToCartFeignService;
+import com.sufaltalukder.feign.Services.NotificationFeignService;
 
 @RestController
 @RequestMapping("/api/v1/elastic/user")
@@ -23,7 +25,10 @@ public class CustomerPurchaseController {
 	private CustomerPurchaseService customerPurchaseService;
 
 	@Autowired
-	private AddToCartService addToCartService; // feign client
+	private AddToCartFeignService addToCartFeignService; // addTocart feign client
+
+	@Autowired
+	private NotificationFeignService notificationFeignService; // notification feign client
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -46,7 +51,7 @@ public class CustomerPurchaseController {
 			if ("success".equals(response.getStatus())) {
 
 				// call micro-service via feign client
-				addToCartService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
+				addToCartFeignService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
 						checkOutHistoryModel.getUserId());
 			}
 

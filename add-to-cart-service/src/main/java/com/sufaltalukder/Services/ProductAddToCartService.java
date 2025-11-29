@@ -22,4 +22,6 @@ public interface ProductAddToCartService {
 	
 	ApiResponse<Void> removeUserAllCarts(String addToCartIds, long userId);
 
+	ApiResponse<ProductAddToCartModel> getUserCart(long addToCartId, long userId);
+
 }

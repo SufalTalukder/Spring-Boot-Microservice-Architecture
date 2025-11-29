@@ -19,6 +19,7 @@ public class CheckOutHistoryDTO {
 	private long authUserId;
 	private long userId;
 	private List<String> addToCartIds;
+	private List<String> productIds;
 	private UserModel userInfo;
 	private String paymentAddress;
 	private String shippingAddress;

@@ -13,7 +13,7 @@ import com.sufaltalukder.Models.ProductAddToCartModel;
 import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Repositories.CheckOutHistoryRepository;
 import com.sufaltalukder.Repositories.UserRepository;
-import com.sufaltalukder.feign.Services.AddToCartService;
+import com.sufaltalukder.feign.Services.AddToCartFeignService;
 
 import jakarta.transaction.Transactional;
 
@@ -28,7 +28,7 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 	private UserRepository userRepository;
 
 	@Autowired
-	private AddToCartService addToCartService;
+	private AddToCartFeignService addToCartFeignService;
 
 	@Override
 	public ApiResponse<CheckOutHistoryDTO> createUserCheckOut(CheckOutHistoryModel checkOutHistoryModel) {
@@ -51,7 +51,7 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 			long eachCartId = Long.parseLong(cartIdStr.trim());
 
 			// call Feign
-			ApiResponse<ProductAddToCartModel> apiResponse = addToCartService.getUserCart(eachCartId, user.getUserId());
+			ApiResponse<ProductAddToCartModel> apiResponse = addToCartFeignService.getUserCart(eachCartId, user.getUserId());
 
 			if (apiResponse == null || !"success".equals(apiResponse.getStatus())) {
 				return new ApiResponse<>("not found",

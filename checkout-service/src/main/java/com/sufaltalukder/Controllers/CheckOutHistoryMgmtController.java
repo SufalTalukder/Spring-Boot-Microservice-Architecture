@@ -9,7 +9,7 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CheckOutHistoryModel;
 import com.sufaltalukder.Services.CheckOutHistoryMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
-import com.sufaltalukder.feign.Services.AddToCartService;
+import com.sufaltalukder.feign.Services.AddToCartFeignService;
 
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
@@ -22,7 +22,7 @@ public class CheckOutHistoryMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@Autowired
-	private AddToCartService addToCartService; // feign client
+	private AddToCartFeignService addToCartFeignService; // feign client
 
 	@PostMapping("/create-checkout-history")
 	public ResponseEntity<ApiResponse<CheckOutHistoryDTO>> createUserCheckOut(
@@ -42,7 +42,7 @@ public class CheckOutHistoryMgmtController {
 			if ("success".equals(response.getStatus())) {
 
 				// call micro-service via feign client
-				addToCartService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
+				addToCartFeignService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
 						checkOutHistoryModel.getUserId());
 			}
 

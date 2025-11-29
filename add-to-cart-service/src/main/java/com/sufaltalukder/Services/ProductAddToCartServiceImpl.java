@@ -55,6 +55,18 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 	}
 
 	@Override
+	public ApiResponse<ProductAddToCartModel> getUserCart(long addToCartId, long userId) {
+
+		ProductAddToCartModel cart = productAddToCartRepository.findCartByUserId(addToCartId, userId);
+
+		if (cart == null) {
+			return new ApiResponse<>("not applicable", "This user doesn't own this cart ID.", null);
+		}
+
+		return new ApiResponse<>("success", "Cart ID fetched successfully.", cart);
+	}
+
+	@Override
 	public PaginationApiResponse<List<ProductAddToCartDTO>> getUserCarts(long userId, int pageNo, int pageSize,
 			String sortBy, String sortDir) {
 

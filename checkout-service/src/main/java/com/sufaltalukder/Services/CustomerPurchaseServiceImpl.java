@@ -17,8 +17,9 @@ import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Models.CheckOutHistoryModel.OrderStatus;
 import com.sufaltalukder.Models.CheckOutHistoryModel.PaymentMethod;
 import com.sufaltalukder.Repositories.CheckOutHistoryRepository;
+import com.sufaltalukder.Repositories.ProductAddToCartRepository;
 import com.sufaltalukder.Repositories.UserRepository;
-import com.sufaltalukder.feign.Services.AddToCartService;
+import com.sufaltalukder.feign.Services.AddToCartFeignService;
 
 import jakarta.transaction.Transactional;
 
@@ -30,10 +31,13 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 	private UserRepository userRepository;
 
 	@Autowired
-	private AddToCartService addToCartService; // feign service
+	private AddToCartFeignService addToCartFeignService; // addToCart feign service
 
 	@Autowired
 	private CheckOutHistoryRepository checkOutHistoryRepository;
+
+	@Autowired
+	private ProductAddToCartRepository productAddToCartRepository;
 
 	@Override
 	public ApiResponse<CheckOutHistoryDTO> createUserCheckOut(CheckOutHistoryModel checkOutHistoryModel) {
@@ -43,8 +47,11 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 			return new ApiResponse<>("not found", "User ID not found.", null);
 		}
 
+		System.out.println("User ID: " + checkOutHistoryModel.getUserId());
+		
 		double totalPaymentAmount = 0;
 		StringBuilder cartIdsBuilder = new StringBuilder();
+		StringBuilder productIdsBuilder = new StringBuilder();
 
 		for (String cartIdStr : checkOutHistoryModel.getAddToCartIds().split(",")) {
 
@@ -53,27 +60,40 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 
 			long eachCartId = Long.parseLong(cartIdStr.trim());
 
-			// call Feign
-			ApiResponse<ProductAddToCartModel> apiResponse = addToCartService.getUserCart(eachCartId, user.getUserId());
+			// call addToCart feign
+			ApiResponse<ProductAddToCartModel> apiResponse = addToCartFeignService.getUserCart(eachCartId,
+					checkOutHistoryModel.getUserId());
 
 			if (apiResponse == null || !"success".equals(apiResponse.getStatus())) {
 				return new ApiResponse<>("not found",
 						"Cart ID: " + eachCartId + " not found for User ID: " + user.getUserId(), null);
 			}
 
+			// fetch productId by cardId
+			long findEachProductIdByCartId = productAddToCartRepository.findProductByCartId(eachCartId);
+
+			if (findEachProductIdByCartId == 0) {
+				return new ApiResponse<>("not found", "Cart ID not found.", null);
+			}
+
 			ProductAddToCartModel cart = apiResponse.getContent();
 
 			totalPaymentAmount += cart.getEachProductTotalPrice();
 			cartIdsBuilder.append(eachCartId).append(",");
+			productIdsBuilder.append(findEachProductIdByCartId).append(",");
 		}
 
 		String cartIds = cartIdsBuilder.length() > 0 ? cartIdsBuilder.substring(0, cartIdsBuilder.length() - 1) : "";
+		String productIds = productIdsBuilder.length() > 0
+				? productIdsBuilder.substring(0, productIdsBuilder.length() - 1)
+				: "";
 
 		CheckOutHistoryModel addData = new CheckOutHistoryModel();
 
 		addData.setAuthUserId(checkOutHistoryModel.getAuthUserId());
 		addData.setUserId(user.getUserId());
 		addData.setAddToCartIds(cartIds);
+		addData.setProductIds(productIds);
 
 		addData.setPaymentAddress(checkOutHistoryModel.getPaymentAddress());
 		addData.setShippingAddress(checkOutHistoryModel.getShippingAddress());
