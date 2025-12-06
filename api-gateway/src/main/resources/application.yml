@@ -7,7 +7,6 @@ spring:
 
   cloud:
     gateway:
-
       discovery:
         locator:
           enabled: true
@@ -72,6 +71,16 @@ spring:
 
         - id: AUTH-SERVICE
           uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/v1/elastic/**
+
+        - id: NOTIFICATION-SERVICE
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/v1/elastic/**
+
+        - id: USER-RATING-SERVICE
+          uri: lb://USER-RATING-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
 
