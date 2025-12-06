@@ -50,7 +50,21 @@ public class CustomerPurchaseController {
 
 			if ("success".equals(response.getStatus())) {
 
-				// call micro-service via feign client
+				List<String> productIds = response.getContent().getProductIds();
+
+				for (String eachId : productIds) {
+
+					long pid = Long.parseLong(eachId);
+
+					NotificationModel model = new NotificationModel();
+					model.setUserId(userId);
+					model.setNotificationProductId(pid);
+
+					// call notification micro-service via feign client
+					notificationFeignService.pushInAppNotification(model);
+				}
+
+				// call addToCart micro-service via feign client
 				addToCartFeignService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
 						checkOutHistoryModel.getUserId());
 			}
