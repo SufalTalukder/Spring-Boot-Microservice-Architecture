@@ -7,7 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @SpringBootApplication
 @EnableDiscoveryClient
 public class SubCategoryServiceApp {
-	public static void main(String[] args) {
-		SpringApplication.run(SubCategoryServiceApp.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SubCategoryServiceApp.class, args);
+    }
 }
