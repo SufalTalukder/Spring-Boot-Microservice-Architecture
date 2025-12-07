@@ -5,6 +5,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.DTOs.UserDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
@@ -57,7 +58,7 @@ public class UserController {
 	}
 
 	@GetMapping("/get")
-	public ResponseEntity<ApiResponse<UserDTO>> fetchUser(@RequestHeader String authToken) {
+	public ResponseEntity<ApiResponse<UserDTO>> fetchUser(@RequestHeader("authToken") String authToken) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
 			ApiResponse<UserDTO> response = userService.fetchUser(userId);
@@ -91,7 +92,7 @@ public class UserController {
 	}
 
 	@PostMapping("/upload-image")
-	public ResponseEntity<ApiResponse<String>> uploadImage(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<String>> uploadImage(@RequestHeader("authToken") String authToken,
 			@RequestParam("image") MultipartFile file) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
@@ -109,7 +110,7 @@ public class UserController {
 	}
 
 	@PatchMapping("/update-details")
-	public ResponseEntity<ApiResponse<UserDTO>> updateDetail(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<UserDTO>> updateDetail(@RequestHeader("authToken") String authToken,
 			@RequestBody UserModel userModel) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
@@ -124,5 +125,18 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
+	}
+
+	@GetMapping("/is-newsletter-subscribed")
+	public ResponseEntity<ApiResponse<NewsletterDTO>> getNewsletterSubscribed(@RequestParam long userId) {
+		ApiResponse<NewsletterDTO> response = userService.getNewsletterSubscribed(userId);
+
+		if ("not found".equals(response.getStatus())) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+		}
+		if ("not same".equals(response.getStatus())) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+		}
+		return ResponseEntity.ok(response);
 	}
 }

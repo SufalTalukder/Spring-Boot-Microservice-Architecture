@@ -30,6 +30,7 @@
         <module>order-return-service</module>
         <module>product-service</module>
         <module>sub-category-service</module>
+        <module>user-rating-service</module>
         <module>user-service</module>
         <module>api-gateway</module>
         <module>discovery-service</module>
@@ -61,6 +62,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-actuator</artifactId>
             </dependency>
+            
+            <!-- Swagger OpenAPI Dependency Management -->
+			<dependency>
+			    <groupId>org.springdoc</groupId>
+			    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			    <version>2.6.0</version>
+			</dependency>
 
         </dependencies>
     </dependencyManagement>

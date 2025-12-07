@@ -6,8 +6,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class BannerServiceApp {
+public class AddToCartFavouriteApp {
 	public static void main(String[] args) {
-		SpringApplication.run(BannerServiceApp.class, args);
+		SpringApplication.run(AddToCartFavouriteApp.class, args);
 	}
 }

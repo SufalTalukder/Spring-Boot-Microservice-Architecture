@@ -2,6 +2,7 @@ package com.sufaltalukder.Services;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.DTOs.UserDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
@@ -21,5 +22,7 @@ public interface UserService {
 	ApiResponse<UserDTO> updateDetail(long userId, UserModel userModel);
 
 	ApiResponse<String> fetchUserReferralCode(long userId);
+
+	ApiResponse<NewsletterDTO> getNewsletterSubscribed(long userId);
 
 }

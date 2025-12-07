@@ -14,76 +14,147 @@ spring:
 
       routes:
 
+        # ---------------- ADD TO CART ----------------
         - id: ADD-TO-CART-SERVICE
           uri: lb://ADD-TO-CART-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/add-to-cart/v3/api-docs
+            - Path=/add-to-cart/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- ADD TO FAVOURITE ----------------
         - id: ADD-TO-FAVOURITE-SERVICE
           uri: lb://ADD-TO-FAVOURITE-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/favourite/v3/api-docs
+            - Path=/favourite/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- BANNER ----------------
         - id: BANNER-SERVICE
           uri: lb://BANNER-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/banner/v3/api-docs
+            - Path=/banner/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- CATEGORY ----------------
         - id: CATEGORY-SERVICE
           uri: lb://CATEGORY-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/category/v3/api-docs
+            - Path=/category/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- CHECKOUT ----------------
         - id: CHECKOUT-SERVICE
           uri: lb://CHECKOUT-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/checkout/v3/api-docs
+            - Path=/checkout/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- LANGUAGE ----------------
         - id: LANGUAGE-SERVICE
           uri: lb://LANGUAGE-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/language/v3/api-docs
+            - Path=/language/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- NEWSLETTER ----------------
         - id: NEWSLETTER-SERVICE
           uri: lb://NEWSLETTER-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/newsletter/v3/api-docs
+            - Path=/newsletter/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- ORDER RETURN ----------------
         - id: ORDER-RETURN-SERVICE
           uri: lb://ORDER-RETURN-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/order-return/v3/api-docs
+            - Path=/order-return/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- PRODUCT ----------------
         - id: PRODUCT-SERVICE
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/product/v3/api-docs
+            - Path=/product/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- SUB CATEGORY ----------------
         - id: SUB-CATEGORY-SERVICE
           uri: lb://SUB-CATEGORY-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/sub-category/v3/api-docs
+            - Path=/sub-category/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- USER ----------------
         - id: USER-SERVICE
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/user/v3/api-docs
+            - Path=/user/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- AUTH ----------------
         - id: AUTH-SERVICE
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/auth/v3/api-docs
+            - Path=/auth/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- NOTIFICATION ----------------
         - id: NOTIFICATION-SERVICE
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/notification/v3/api-docs
+            - Path=/notification/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- USER RATING ----------------
         - id: USER-RATING-SERVICE
           uri: lb://USER-RATING-SERVICE
           predicates:
             - Path=/api/v1/elastic/**
+            - Path=/rating/v3/api-docs
+            - Path=/rating/swagger-ui/**
+          filters:
+            - StripPrefix=1
 
+        # ---------------- EUREKA UI ----------------
         - id: DISCOVERY-SERVICE
           uri: http://localhost:8761/
           predicates:
@@ -103,3 +174,42 @@ management:
     web:
       exposure:
         include: "*"
+
+# ----------------------------------------------------
+# CENTRALIZED SWAGGER UI CONFIG (Working)
+# ----------------------------------------------------
+springdoc:
+  api-docs:
+    enabled: true
+
+  swagger-ui:
+    enabled: true
+    urls:
+      - name: Add To Cart Service
+        url: /add-to-cart/v3/api-docs
+      - name: Add To Favourite Service
+        url: /favourite/v3/api-docs
+      - name: Banner Service
+        url: /banner/v3/api-docs
+      - name: Category Service
+        url: /category/v3/api-docs
+      - name: Checkout Service
+        url: /checkout/v3/api-docs
+      - name: Language Service
+        url: /language/v3/api-docs
+      - name: Newsletter Service
+        url: /newsletter/v3/api-docs
+      - name: Order Return Service
+        url: /order-return/v3/api-docs
+      - name: Product Service
+        url: /product/v3/api-docs
+      - name: Sub Category Service
+        url: /sub-category/v3/api-docs
+      - name: User Service
+        url: /user/v3/api-docs
+      - name: Auth Service
+        url: /auth/v3/api-docs
+      - name: Notification Service
+        url: /notification/v3/api-docs
+      - name: User Rating Service
+        url: /rating/v3/api-docs

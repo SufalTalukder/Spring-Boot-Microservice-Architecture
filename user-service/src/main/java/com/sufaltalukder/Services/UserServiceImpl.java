@@ -10,14 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.DTOs.UserDTO;
+import com.sufaltalukder.Mappers.NewsletterMapper;
 import com.sufaltalukder.Mappers.UserMapper;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
+import com.sufaltalukder.Models.NewsletterModel;
 import com.sufaltalukder.Models.OtpModel;
 import com.sufaltalukder.Models.OtpResponse;
 import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Models.UserModel.UserActive;
+import com.sufaltalukder.Repositories.NewsletterRepository;
 import com.sufaltalukder.Repositories.OtpRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.Utils.JwtUtil;
@@ -30,6 +34,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private OtpRepository otpRepository;
+
+	@Autowired
+	private NewsletterRepository newsletterRepository;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -238,4 +245,23 @@ public class UserServiceImpl implements UserService {
 		UserModel updateUser = userRepository.save(newUserData);
 		return new ApiResponse<>("success", "User detail updated successfully.", UserMapper.toDTO(updateUser));
 	}
+
+	@Override
+	public ApiResponse<NewsletterDTO> getNewsletterSubscribed(long userId) {
+
+		Optional<UserModel> user = userRepository.findById(userId);
+
+		if (user.isEmpty()) {
+			return new ApiResponse<>("not found", "User not found.", null);
+		}
+
+		NewsletterModel existingNewsletter = newsletterRepository.findByUserId(userId);
+
+		if (existingNewsletter == null) {
+			return new ApiResponse<>("not found", "Newsletter subscription not found.", null);
+		}
+
+		return new ApiResponse<>("success", "Newsletter status fetched.", NewsletterMapper.toDTO(existingNewsletter));
+	}
+
 }
