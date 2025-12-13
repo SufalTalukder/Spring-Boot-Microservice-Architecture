@@ -20,6 +20,7 @@
 
     <!-- Child Modules -->
     <modules>
+    		<module>action-log-service</module>
         <module>add-to-cart-service</module>
         <module>add-to-favourite-service</module>
         <module>banner-service</module>

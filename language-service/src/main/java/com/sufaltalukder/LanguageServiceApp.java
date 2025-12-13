@@ -7,7 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @SpringBootApplication
 @EnableDiscoveryClient
 public class LanguageServiceApp {
-    public static void main(String[] args) {
-        SpringApplication.run(LanguageServiceApp.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(LanguageServiceApp.class, args);
+	}
 }

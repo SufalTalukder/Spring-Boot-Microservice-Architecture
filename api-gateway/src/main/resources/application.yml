@@ -14,13 +14,19 @@ spring:
 
       routes:
 
+        # ---------------- ACTION LOG ----------------
+        - id: ACTION-LOG-SERVICE
+          uri: lb://ACTION-LOG-SERVICE
+          predicates:
+            - Path=/api/v1/elastic/**,/action-log/v3/api-docs,/action-log/swagger-ui/**
+          filters:
+            - StripPrefix=1
+
         # ---------------- ADD TO CART ----------------
         - id: ADD-TO-CART-SERVICE
           uri: lb://ADD-TO-CART-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/add-to-cart/v3/api-docs
-            - Path=/add-to-cart/swagger-ui/**
+            - Path=/api/v1/elastic/**,/add-to-cart/v3/api-docs,/add-to-cart/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -28,9 +34,7 @@ spring:
         - id: ADD-TO-FAVOURITE-SERVICE
           uri: lb://ADD-TO-FAVOURITE-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/favourite/v3/api-docs
-            - Path=/favourite/swagger-ui/**
+            - Path=/api/v1/elastic/**,/favourite/v3/api-docs,/favourite/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -38,9 +42,7 @@ spring:
         - id: BANNER-SERVICE
           uri: lb://BANNER-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/banner/v3/api-docs
-            - Path=/banner/swagger-ui/**
+            - Path=/api/v1/elastic/**,/banner/v3/api-docs,/banner/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -48,9 +50,7 @@ spring:
         - id: CATEGORY-SERVICE
           uri: lb://CATEGORY-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/category/v3/api-docs
-            - Path=/category/swagger-ui/**
+            - Path=/api/v1/elastic/**,/category/v3/api-docs,/category/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -58,9 +58,7 @@ spring:
         - id: CHECKOUT-SERVICE
           uri: lb://CHECKOUT-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/checkout/v3/api-docs
-            - Path=/checkout/swagger-ui/**
+            - Path=/api/v1/elastic/**,/checkout/v3/api-docs,/checkout/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -68,9 +66,7 @@ spring:
         - id: LANGUAGE-SERVICE
           uri: lb://LANGUAGE-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/language/v3/api-docs
-            - Path=/language/swagger-ui/**
+            - Path=/api/v1/elastic/**,/language/v3/api-docs,/language/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -78,9 +74,7 @@ spring:
         - id: NEWSLETTER-SERVICE
           uri: lb://NEWSLETTER-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/newsletter/v3/api-docs
-            - Path=/newsletter/swagger-ui/**
+            - Path=/api/v1/elastic/**,/newsletter/v3/api-docs,/newsletter/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -88,9 +82,7 @@ spring:
         - id: ORDER-RETURN-SERVICE
           uri: lb://ORDER-RETURN-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/order-return/v3/api-docs
-            - Path=/order-return/swagger-ui/**
+            - Path=/api/v1/elastic/**,/order-return/v3/api-docs,/order-return/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -98,9 +90,7 @@ spring:
         - id: PRODUCT-SERVICE
           uri: lb://PRODUCT-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/product/v3/api-docs
-            - Path=/product/swagger-ui/**
+            - Path=/api/v1/elastic/**,/product/v3/api-docs,/product/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -108,9 +98,7 @@ spring:
         - id: SUB-CATEGORY-SERVICE
           uri: lb://SUB-CATEGORY-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/sub-category/v3/api-docs
-            - Path=/sub-category/swagger-ui/**
+            - Path=/api/v1/elastic/**,/sub-category/v3/api-docs,/sub-category/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -118,9 +106,7 @@ spring:
         - id: USER-SERVICE
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/user/v3/api-docs
-            - Path=/user/swagger-ui/**
+            - Path=/api/v1/elastic/**,/user/v3/api-docs,/user/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -128,9 +114,7 @@ spring:
         - id: AUTH-SERVICE
           uri: lb://AUTH-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/auth/v3/api-docs
-            - Path=/auth/swagger-ui/**
+            - Path=/api/v1/elastic/**,/auth/v3/api-docs,/auth/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -138,9 +122,7 @@ spring:
         - id: NOTIFICATION-SERVICE
           uri: lb://NOTIFICATION-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/notification/v3/api-docs
-            - Path=/notification/swagger-ui/**
+            - Path=/api/v1/elastic/**,/notification/v3/api-docs,/notification/swagger-ui/**
           filters:
             - StripPrefix=1
 
@@ -148,15 +130,13 @@ spring:
         - id: USER-RATING-SERVICE
           uri: lb://USER-RATING-SERVICE
           predicates:
-            - Path=/api/v1/elastic/**
-            - Path=/rating/v3/api-docs
-            - Path=/rating/swagger-ui/**
+            - Path=/api/v1/elastic/**,/rating/v3/api-docs,/rating/swagger-ui/**
           filters:
             - StripPrefix=1
 
         # ---------------- EUREKA UI ----------------
         - id: DISCOVERY-SERVICE
-          uri: http://localhost:8761/
+          uri: http://localhost:8761
           predicates:
             - Path=/eureka/**
           filters:
@@ -176,7 +156,7 @@ management:
         include: "*"
 
 # ----------------------------------------------------
-# CENTRALIZED SWAGGER UI CONFIG (Working)
+# CENTRALIZED SWAGGER UI CONFIG
 # ----------------------------------------------------
 springdoc:
   api-docs:
