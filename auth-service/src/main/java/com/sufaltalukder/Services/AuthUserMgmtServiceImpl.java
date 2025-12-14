@@ -53,6 +53,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(user.getAuthUserId());
 		actionLogData.setAuthUserId(user.getAuthUserId());
 		actionLogData.setActionLogMethod(ActionLogMethod.POST);
 		actionLogData.setActionLogMessage("Login successfully.");

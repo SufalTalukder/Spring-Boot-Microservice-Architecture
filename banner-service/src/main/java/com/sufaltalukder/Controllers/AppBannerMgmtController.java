@@ -23,13 +23,17 @@ public class AppBannerMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/upload-multi-images")
-	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> uploadMulipleImages(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> uploadMulipleImages(
+			@RequestHeader("authToken") String authToken,
 			@RequestParam("appBannerImage") MultipartFile[] appBannerImage) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
 			ApiResponse<List<AppBannerDTO>> response = appBannerMgmtService.uploadMulipleImages(authUserId,
 					appBannerImage);
+
 			return ResponseEntity.ok(response);
+
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(new ApiResponse<>("error", "Unauthorized access.", null));
@@ -37,15 +41,19 @@ public class AppBannerMgmtController {
 	}
 
 	@GetMapping("/get-all-banner-images")
-	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> fetchAllBannerImages(@RequestHeader String authToken) {
+	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> fetchAllBannerImages(
+			@RequestHeader("authToken") String authToken) {
 		try {
 			authJwtUtil.extractAuthUserId(authToken);
+
 			ApiResponse<List<AppBannerDTO>> response = appBannerMgmtService.fetchAllBannerImages();
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 			}
+
 			return ResponseEntity.ok(response);
+
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(new ApiResponse<>("error", "Unauthorized access.", null));
@@ -53,19 +61,24 @@ public class AppBannerMgmtController {
 	}
 
 	@DeleteMapping("/delete-multi-images")
-	public ResponseEntity<ApiResponse<List<String>>> deleteMultipleBannerImages(@RequestHeader String authToken,
-			@RequestBody List<Long> appBannerIds) {
+	public ResponseEntity<ApiResponse<List<String>>> deleteMultipleBannerImages(
+			@RequestHeader("authToken") String authToken, @RequestBody List<Long> appBannerIds) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			ApiResponse<List<String>> response = appBannerMgmtService.deleteMultipleBannerImages(appBannerIds);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
+			ApiResponse<List<String>> response = appBannerMgmtService.deleteMultipleBannerImages(authUserId,
+					appBannerIds);
 
 			if ("partial".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(response);
 			}
+
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 			}
+
 			return ResponseEntity.ok(response);
+
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(new ApiResponse<>("error", "Unauthorized access.", null));

@@ -23,18 +23,20 @@ public class LanguageMgmtController {
 	private LanguageMgmtService languageMgmtService;
 
 	@PostMapping("/create-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> createLanguage(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<LanguageDTO>> createLanguage(@RequestHeader("authToken") String authToken,
 			@RequestBody LanguageModel languageModel) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
 			languageModel.setAuthUserId(authUserId);
 
 			ApiResponse<LanguageDTO> response = languageMgmtService.createLanguage(languageModel);
+
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
 			}
 
-			return ResponseEntity.status(HttpStatus.OK).body(response);
+			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -43,11 +45,12 @@ public class LanguageMgmtController {
 	}
 
 	@GetMapping("/get-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> getLanguage(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<LanguageDTO>> getLanguage(@RequestHeader("authToken") String authToken,
 			@RequestParam long languageId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			ApiResponse<LanguageDTO> response = languageMgmtService.getLanguage(languageId);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
+			ApiResponse<LanguageDTO> response = languageMgmtService.getLanguage(authUserId, languageId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -62,9 +65,11 @@ public class LanguageMgmtController {
 	}
 
 	@GetMapping("/get-all-languages")
-	public ResponseEntity<ApiResponse<List<LanguageDTO>>> getAllLanguages(@RequestHeader String authToken) {
+	public ResponseEntity<ApiResponse<List<LanguageDTO>>> getAllLanguages(
+			@RequestHeader("authToken") String authToken) {
 		try {
 			authJwtUtil.extractAuthUserId(authToken);
+
 			ApiResponse<List<LanguageDTO>> response = languageMgmtService.getAllLanguages();
 
 			if ("not found".equals(response.getStatus())) {
@@ -80,10 +85,11 @@ public class LanguageMgmtController {
 	}
 
 	@PutMapping("/update-language-details")
-	public ResponseEntity<ApiResponse<LanguageDTO>> updateLanguage(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<LanguageDTO>> updateLanguage(@RequestHeader("authToken") String authToken,
 			@RequestParam long languageId, @RequestBody LanguageModel languageModel) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
 			languageModel.setAuthUserId(authUserId);
 
 			ApiResponse<LanguageDTO> response = languageMgmtService.updateLanguage(languageId, languageModel);
@@ -105,11 +111,12 @@ public class LanguageMgmtController {
 	}
 
 	@DeleteMapping("/delete-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> deleteLanguage(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<LanguageDTO>> deleteLanguage(@RequestHeader("authToken") String authToken,
 			@RequestParam long languageId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			ApiResponse<LanguageDTO> response = languageMgmtService.deleteLanguage(languageId);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+
+			ApiResponse<LanguageDTO> response = languageMgmtService.deleteLanguage(authUserId, languageId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

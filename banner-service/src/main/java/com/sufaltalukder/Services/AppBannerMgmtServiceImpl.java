@@ -10,9 +10,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AppBannerDTO;
 import com.sufaltalukder.Mappers.AppBannerMapper;
+import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AppBannerModel;
+import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Repositories.AppBannerRepository;
+import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 @Service
 public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
@@ -20,11 +23,16 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 	@Autowired
 	private AppBannerRepository appBannerRepository;
 
+	@Autowired
+	private ActionLogFeignService actionLogFeignService; // via feign client
+
 	private final String UPLOAD_DIR = "uploads";
 
 	@Override
 	public ApiResponse<List<AppBannerDTO>> uploadMulipleImages(long authUserId, MultipartFile[] appBannerImages) {
+
 		List<AppBannerModel> savedImages = new ArrayList<>();
+
 		File uploadDir = new File(UPLOAD_DIR);
 		if (!uploadDir.exists()) {
 			uploadDir.mkdirs();
@@ -47,6 +55,14 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 				appBannerModel.setAuthUserId(authUserId);
 				appBannerModel.setAppBannerImage(uniqueFileName);
 
+				// Push data inside actionLogFeignService
+				ActionLogModel actionLogData = new ActionLogModel();
+				actionLogData.setActionByAuthUserId(authUserId);
+				actionLogData.setAuthUserId(authUserId);
+				actionLogData.setActionLogMethod(ActionLogMethod.POST);
+				actionLogData.setActionLogMessage("Banner image(s) uploaded successfully.");
+				actionLogFeignService.addActionLog(actionLogData);
+
 				savedImages.add(appBannerRepository.save(appBannerModel));
 
 			} catch (IOException e) {
@@ -60,6 +76,7 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 
 	@Override
 	public ApiResponse<List<AppBannerDTO>> fetchAllBannerImages() {
+
 		List<AppBannerModel> fetchAllImagesData = appBannerRepository.findAll();
 
 		if (fetchAllImagesData.isEmpty()) {
@@ -68,13 +85,15 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 
 		List<AppBannerDTO> dtos = fetchAllImagesData.stream().map(AppBannerMapper::toDTO).toList();
 
-		return new ApiResponse<>("success", "All banner images fetched successfully.", dtos);
+		return new ApiResponse<>("success", "All banner image(s) fetched successfully.", dtos);
 	}
 
 	@Override
-	public ApiResponse<List<String>> deleteMultipleBannerImages(List<Long> appBannerIds) {
+	public ApiResponse<List<String>> deleteMultipleBannerImages(long authUserId, List<Long> appBannerIds) {
+
 		List<Long> nonExistentIds = new ArrayList<>();
 		List<Long> deletedIds = new ArrayList<>();
+
 		for (Long eachBannerId : appBannerIds) {
 			// remove images from the folder
 			Path uploadPath = Paths.get(UPLOAD_DIR);
@@ -105,6 +124,15 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 		if (deletedIds.isEmpty() && !nonExistentIds.isEmpty()) {
 			return new ApiResponse<>("not found", "Deleted ID(s) not found: " + nonExistentIds, null);
 		}
-		return new ApiResponse<>("success", "Multiple banner images deleted successfully: " + deletedIds, null);
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
+		actionLogData.setActionLogMessage("Multiple banner image(s) deleted successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "Multiple banner image(s) deleted successfully: " + deletedIds, null);
 	}
 }

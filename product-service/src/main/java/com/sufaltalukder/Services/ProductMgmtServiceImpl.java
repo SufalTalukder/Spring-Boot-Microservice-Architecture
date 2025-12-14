@@ -9,16 +9,19 @@ import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.ProductDTO;
 import com.sufaltalukder.Mappers.ProductMapper;
+import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CategoryModel;
 import com.sufaltalukder.Models.LanguageModel;
 import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Models.SubCategoryModel;
+import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Repositories.CategoryRepository;
 import com.sufaltalukder.Repositories.LanguageRepository;
 import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.SubCategoryRepository;
+import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 @Service
 public class ProductMgmtServiceImpl implements ProductMgmtService {
@@ -34,6 +37,9 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 
 	@Autowired
 	private SubCategoryRepository subCategoryRepository;
+
+	@Autowired
+	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
 	public ApiResponse<ProductDTO> createProduct(ProductModel productModel) {
@@ -62,12 +68,20 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 			return new ApiResponse<>("exist", "Product name already exist!", null);
 		}
 
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(productModel.getAuthUserId());
+		actionLogData.setAuthUserId(productModel.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Product created successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
 		ProductModel savedData = productRepository.save(productModel);
 		return new ApiResponse<>("success", "Product created successfully.", ProductMapper.toDTO(savedData));
 	}
 
 	@Override
-	public ApiResponse<List<ProductDTO>> createMultipleProduct(List<ProductModel> productModels) {
+	public ApiResponse<List<ProductDTO>> createMultipleProduct(long authUserId, List<ProductModel> productModels) {
 		if (productModels == null || productModels.isEmpty()) {
 			return new ApiResponse<>("not found", "Product list is empty.", null);
 		}
@@ -82,23 +96,39 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		List<String> existingNames = existingProducts.stream().map(ProductModel::getProductName).toList();
 
 		if (!existingNames.isEmpty()) {
-			return new ApiResponse<>("exist", "Some product names already exist: " + existingNames, null);
+			return new ApiResponse<>("exist", "Some product name(s) already exist: " + existingNames, null);
 		}
 
 		List<ProductModel> savedMultipleData = productRepository.saveAll(productModels);
 
 		List<ProductDTO> dtos = savedMultipleData.stream().map(ProductMapper::toDTO).toList();
 
-		return new ApiResponse<>("success", "Products created successfully.", dtos);
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Multiple product(s) created successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "Multiple product(s) created successfully.", dtos);
 	}
 
 	@Override
-	public ApiResponse<ProductDTO> getProduct(long productId) {
+	public ApiResponse<ProductDTO> getProduct(long authUserId, long productId) {
 		Optional<ProductModel> isProductIdExist = productRepository.findById(productId);
 
 		if (isProductIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "No product found.", null);
 		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.GET);
+		actionLogData.setActionLogMessage("Product fetched successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "Product fetched successfully.",
 				ProductMapper.toDTO(isProductIdExist.get()));
@@ -146,17 +176,33 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		existingProduct.setProductActive(productModel.getProductActive());
 		existingProduct.setProductUpdatedAt(ZonedDateTime.now());
 
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(productModel.getAuthUserId());
+		actionLogData.setAuthUserId(productModel.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
+		actionLogData.setActionLogMessage("Product updated successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
 		ProductModel updatedData = productRepository.save(existingProduct);
 		return new ApiResponse<>("success", "Product updated successfully.", ProductMapper.toDTO(updatedData));
 	}
 
 	@Override
-	public ApiResponse<ProductDTO> deleteProduct(long productId) {
+	public ApiResponse<ProductDTO> deleteProduct(long authUserId, long productId) {
 		Optional<ProductModel> isProductIdExist = productRepository.findById(productId);
 
 		if (isProductIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "No product found.", null);
 		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
+		actionLogData.setActionLogMessage("Product deleted successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
 
 		productRepository.deleteById(productId);
 		return new ApiResponse<>("success", "Product deleted successfully.", null);

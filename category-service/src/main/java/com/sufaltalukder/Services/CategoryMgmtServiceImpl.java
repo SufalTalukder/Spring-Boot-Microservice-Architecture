@@ -7,9 +7,12 @@ import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.CategoryDTO;
 import com.sufaltalukder.Mappers.CategoryMapper;
+import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CategoryModel;
+import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Repositories.CategoryRepository;
+import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 @Service
 public class CategoryMgmtServiceImpl implements CategoryMgmtService {
@@ -17,8 +20,12 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 	@Autowired
 	private CategoryRepository categoryRepository;
 
+	@Autowired
+	private ActionLogFeignService actionLogFeignService; // via feign client
+
 	@Override
 	public ApiResponse<CategoryDTO> createCategory(CategoryModel categoryModel) {
+
 		Optional<CategoryModel> isCategoryNameExist = categoryRepository
 				.findByCategoryName(categoryModel.getCategoryName());
 
@@ -26,17 +33,33 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 			return new ApiResponse<>("exist", "Category already exist!", null);
 		}
 
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Category created successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
 		CategoryModel savedData = categoryRepository.save(categoryModel);
 		return new ApiResponse<>("success", "Category created successfully.", CategoryMapper.toDTO(savedData));
 	}
 
 	@Override
-	public ApiResponse<CategoryDTO> getCategory(long categoryId) {
+	public ApiResponse<CategoryDTO> getCategory(long authUserId, long categoryId) {
 		Optional<CategoryModel> isCategoryIdExist = categoryRepository.findById(categoryId);
 
 		if (isCategoryIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "Category not found.", null);
 		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.GET);
+		actionLogData.setActionLogMessage("Category fetched successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "Category fetched successfully.",
 				CategoryMapper.toDTO(isCategoryIdExist.get()));
@@ -52,7 +75,7 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 
 		List<CategoryDTO> dtos = fetchedAllData.stream().map(CategoryMapper::toDTO).toList();
 
-		return new ApiResponse<>("success", "All categories fetched successfully.", dtos);
+		return new ApiResponse<>("success", "All categorie(s) fetched successfully.", dtos);
 	}
 
 	@Override
@@ -78,17 +101,33 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 		categoryToUpdate.setCategoryActive(categoryModel.getCategoryActive());
 		categoryToUpdate.setCategoryUpdatedAt(ZonedDateTime.now());
 
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
+		actionLogData.setActionLogMessage("Category updated successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
 		CategoryModel updatedData = categoryRepository.save(categoryToUpdate);
 		return new ApiResponse<>("success", "Category updated successfully.", CategoryMapper.toDTO(updatedData));
 	}
 
 	@Override
-	public ApiResponse<CategoryDTO> deleteCategory(long categoryId) {
+	public ApiResponse<CategoryDTO> deleteCategory(long authUserId, long categoryId) {
 		Optional<CategoryModel> isCategoryIdExist = categoryRepository.findById(categoryId);
 
 		if (isCategoryIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "Category not found.", null);
 		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
+		actionLogData.setActionLogMessage("Category deleted successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
 
 		categoryRepository.deleteById(categoryId);
 		return new ApiResponse<>("success", "Category deleted successfully.", null);

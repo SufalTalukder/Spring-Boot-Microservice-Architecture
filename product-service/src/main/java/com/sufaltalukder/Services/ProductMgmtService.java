@@ -11,15 +11,15 @@ public interface ProductMgmtService {
 
 	ApiResponse<ProductDTO> createProduct(ProductModel productModel);
 
-	ApiResponse<List<ProductDTO>> createMultipleProduct(List<ProductModel> productModels);
+	ApiResponse<List<ProductDTO>> createMultipleProduct(long authUserId, List<ProductModel> productModels);
 
-	ApiResponse<ProductDTO> getProduct(long productId);
+	ApiResponse<ProductDTO> getProduct(long authUserId, long productId);
 
 	PaginationApiResponse<List<ProductDTO>> getAllProducts(int pageNo, int pageSize);
 
 	ApiResponse<ProductDTO> updateProduct(long productId, ProductModel productModel);
 
-	ApiResponse<ProductDTO> deleteProduct(long productId);
+	ApiResponse<ProductDTO> deleteProduct(long authUserId, long productId);
 
 	ApiResponse<List<ProductDTO>> getSearchedResults(String q);
 

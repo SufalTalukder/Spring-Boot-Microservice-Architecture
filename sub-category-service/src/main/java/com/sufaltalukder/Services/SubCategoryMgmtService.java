@@ -12,10 +12,10 @@ public interface SubCategoryMgmtService {
 
 	ApiResponse<List<SubCategoryDTO>> getAllSubCategories();
 
-	ApiResponse<SubCategoryDTO> getSubCategory(long subCategoryId);
+	ApiResponse<SubCategoryDTO> getSubCategory(long authUserId, long subCategoryId);
 
 	ApiResponse<SubCategoryDTO> updateSubCategory(long subCategoryId, SubCategoryModel subCategoryModel);
 
-	ApiResponse<SubCategoryDTO> deleteSubCategory(long subCategoryId);
+	ApiResponse<SubCategoryDTO> deleteSubCategory(long authUserId, long subCategoryId);
 
 }

@@ -13,6 +13,6 @@ public interface AppBannerMgmtService {
 
 	ApiResponse<List<AppBannerDTO>> fetchAllBannerImages();
 
-	ApiResponse<List<String>> deleteMultipleBannerImages(List<Long> appBannerIds);
+	ApiResponse<List<String>> deleteMultipleBannerImages(long authUserId, List<Long> appBannerIds);
 
 }

@@ -10,12 +10,12 @@ public interface LanguageMgmtService {
 
 	ApiResponse<LanguageDTO> createLanguage(LanguageModel languageModel);
 
-	ApiResponse<LanguageDTO> getLanguage(long languageId);
+	ApiResponse<LanguageDTO> getLanguage(long authUserId, long languageId);
 
 	ApiResponse<List<LanguageDTO>> getAllLanguages();
 
 	ApiResponse<LanguageDTO> updateLanguage(long languageId, LanguageModel languageModel);
 
-	ApiResponse<LanguageDTO> deleteLanguage(long languageId);
+	ApiResponse<LanguageDTO> deleteLanguage(long authUserId, long languageId);
 
 }
