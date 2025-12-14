@@ -30,11 +30,7 @@ public class AuthUserMgmtController {
 		ApiResponse<AuthTokenResponse> response = authUserMgmtService.loginAuthUser(authUserEmailAddress,
 				authUserPassword);
 
-		if ("not found".equals(response.getStatus())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-		}
-
-		if ("not matched".equals(response.getStatus())) {
+		if ("not found".equals(response.getStatus()) || "not matched".equals(response.getStatus())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 
@@ -42,22 +38,19 @@ public class AuthUserMgmtController {
 	}
 
 	@PostMapping("/create")
-	public ResponseEntity<ApiResponse<AuthUserDTO>> createAuthUser(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<AuthUserDTO>> createAuthUser(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody AuthUserModel authUserInfo) {
+
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAuthUser(authUserId, authUserInfo);
 
-			if ("required".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-			}
-
-			if ("weak password".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-			}
-
-			if ("invalid password".equals(response.getStatus())) {
+			if ("required".equals(response.getStatus()) || "weak password".equals(response.getStatus())
+					|| "invalid password".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 			}
 
@@ -70,10 +63,13 @@ public class AuthUserMgmtController {
 	}
 
 	@PostMapping("/upload-image")
-	public ResponseEntity<ApiResponse<String>> uploadImage(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<String>> uploadImage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam("authImage") MultipartFile file) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<String> response = authUserMgmtService.uploadImage(authUserId, file);
 
@@ -91,9 +87,11 @@ public class AuthUserMgmtController {
 
 	@GetMapping("/get-all-auth-users")
 	public ResponseEntity<ApiResponse<List<AuthUserDTO>>> getAllAuthUsers(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<AuthUserDTO>> response = authUserMgmtService.getAllAuthUsers();
 
@@ -110,9 +108,12 @@ public class AuthUserMgmtController {
 	}
 
 	@GetMapping("/get")
-	public ResponseEntity<ApiResponse<AuthUserDTO>> getAuthUser(@RequestHeader("authToken") String authToken) {
+	public ResponseEntity<ApiResponse<AuthUserDTO>> getAuthUser(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<AuthUserDTO> response = authUserMgmtService.getAuthUser(authUserId);
 
@@ -129,10 +130,13 @@ public class AuthUserMgmtController {
 	}
 
 	@PutMapping("/update-details")
-	public ResponseEntity<ApiResponse<AuthUserDTO>> updateAuthUser(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<AuthUserDTO>> updateAuthUser(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody AuthUserModel authUserInfo) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			authUserInfo.setActionByUserId(authUserId);
 
@@ -151,10 +155,13 @@ public class AuthUserMgmtController {
 	}
 
 	@DeleteMapping("/delete")
-	public ResponseEntity<ApiResponse<AuthUserDTO>> deleteAuthUser(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<AuthUserDTO>> deleteAuthUser(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam long rqstAuthUserId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<AuthUserDTO> response = authUserMgmtService.deleteAuthUser(authUserId, rqstAuthUserId);
 
@@ -171,10 +178,13 @@ public class AuthUserMgmtController {
 	}
 
 	@DeleteMapping("/delete-all")
-	public ResponseEntity<ApiResponse<Void>> deleteAllAuthUsers(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<Void>> deleteAllAuthUsers(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody List<Long> rqstAuthUserIds) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<Void> response = authUserMgmtService.deleteAllAuthUsers(authUserId, rqstAuthUserIds);
 
