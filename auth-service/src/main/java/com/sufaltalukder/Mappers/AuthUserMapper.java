@@ -10,8 +10,8 @@ public class AuthUserMapper {
 			return null;
 		}
 
-		return new AuthUserDTO(entity.getAuthUserId(), entity.getAuthUserImage(), entity.getAuthUserName(),
-				entity.getAuthUserPassword(), entity.getAuthUserEmailAddress(), entity.getAuthUserPhoneNumber(),
+		return new AuthUserDTO(entity.getAuthUserId(), entity.getAuthUserName(), entity.getAuthUserEmailAddress(),
+				entity.getAuthUserPassword(), entity.getAuthUserPhoneNumber(), entity.getAuthUserImage(),
 				entity.getActionByUserId(), entity.getAuthUserActive(), entity.getAuthUserType(),
 				entity.getAuthUserCreatedAt(), entity.getAuthUserUpdatedAt());
 	}
@@ -24,11 +24,11 @@ public class AuthUserMapper {
 		AuthUserModel entity = new AuthUserModel();
 
 		entity.setAuthUserId(dto.getAuthUserId());
-		entity.setAuthUserImage(dto.getAuthUserImage());
 		entity.setAuthUserName(dto.getAuthUserName());
-		entity.setAuthUserPassword(dto.getAuthUserPassword());
 		entity.setAuthUserEmailAddress(dto.getAuthUserEmailAddress());
+		entity.setAuthUserPassword(dto.getAuthUserPassword());
 		entity.setAuthUserPhoneNumber(dto.getAuthUserPhoneNumber());
+		entity.setAuthUserImage(dto.getAuthUserImage());
 		entity.setActionByUserId(dto.getActionByUserId());
 		entity.setAuthUserActive(dto.getAuthUserActive());
 		entity.setAuthUserType(dto.getAuthUserType());

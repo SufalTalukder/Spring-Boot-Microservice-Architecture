@@ -1,7 +1,7 @@
 package com.sufaltalukder.Repositories;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,15 +15,16 @@ public interface ActionLogRepository extends JpaRepository<ActionLogModel, Long>
 	@Query("""
 			    SELECT a
 			    FROM ActionLogModel a
+			    WHERE a.authUserId = :authUserId
 			    ORDER BY a.actionLogCreatedAt DESC
 			""")
-	Page<ActionLogModel> findAllActionLogs(Pageable pageable);
+	List<ActionLogModel> findAllActionLogs(@Param("authUserId") long authUserId);
 
 	@Query("""
 			    SELECT a
 			    FROM ActionLogModel a
-			    WHERE a.userId = :userId
+			    WHERE a.authUserId = :rqstAuthUserId
 			    ORDER BY a.actionLogCreatedAt DESC
 			""")
-	Page<ActionLogModel> findAllUserActionLogs(@Param("userId") long userId, Pageable pageable);
+	List<ActionLogModel> findAllUserActionLogs(@Param("rqstAuthUserId") long rqstAuthUserId);
 }

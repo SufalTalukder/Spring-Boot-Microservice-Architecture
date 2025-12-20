@@ -107,7 +107,7 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	@GetMapping("/get")
+	@GetMapping("/get-auth")
 	public ResponseEntity<ApiResponse<AuthUserDTO>> getAuthUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
@@ -129,14 +129,36 @@ public class AuthUserMgmtController {
 		}
 	}
 
+	@GetMapping("/get-auth-details")
+	public ResponseEntity<ApiResponse<AuthUserDTO>> getAuthUserDetails(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long authUserId) {
+		try {
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthUserDTO> response = authUserMgmtService.getAuthUserDetails(authUserId);
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
 	@PutMapping("/update-details")
 	public ResponseEntity<ApiResponse<AuthUserDTO>> updateAuthUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
-			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long authUserId,
 			@RequestBody AuthUserModel authUserInfo) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			authUserInfo.setActionByUserId(authUserId);
 

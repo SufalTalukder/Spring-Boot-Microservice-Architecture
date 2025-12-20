@@ -8,7 +8,7 @@ import io.jsonwebtoken.*;
 public class AuthJwtUtil {
 
 	private final String SECRET_KEY = "AUTH-USER-ETPL-MAC-LTP-033-SUFAL-0309-ESOLZ-MACOS-11.7.1-Big-Sur-C2VNC0NGG085-1.4-GHz-Dual-Core-Intel-Core-i5";
-	private final long EXPIRATION_TIME = 1000 * 60 * 5; // 5 minutes
+	private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 5 minutes
 
 	public static final String API_KEY_HEADER = "x-api-key";
 	public static final String API_SECRET_HEADER = "x-api-secret";

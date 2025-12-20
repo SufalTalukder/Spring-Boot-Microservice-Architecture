@@ -153,6 +153,18 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
+	public ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId) {
+		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
+
+		if (fetchAuthUser.isEmpty()) {
+			return new ApiResponse<>("not found", "Auth user details not found.", null);
+		}
+
+		return new ApiResponse<>("success", "Auth user details fetched successfully.",
+				AuthUserMapper.toDTO(fetchAuthUser.get()));
+	}
+
+	@Override
 	public ApiResponse<AuthUserDTO> getAuthUser(long authUserId) {
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
 

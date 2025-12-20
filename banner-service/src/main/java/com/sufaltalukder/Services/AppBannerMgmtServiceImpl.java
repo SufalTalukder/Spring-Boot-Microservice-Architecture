@@ -13,8 +13,10 @@ import com.sufaltalukder.Mappers.AppBannerMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AppBannerModel;
+import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Repositories.AppBannerRepository;
+import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 @Service
@@ -22,6 +24,9 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 
 	@Autowired
 	private AppBannerRepository appBannerRepository;
+
+	@Autowired
+	private AuthUserRepository authUserRepository;
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
@@ -32,6 +37,9 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 	public ApiResponse<List<AppBannerDTO>> uploadMulipleImages(long authUserId, MultipartFile[] appBannerImages) {
 
 		List<AppBannerModel> savedImages = new ArrayList<>();
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
 		File uploadDir = new File(UPLOAD_DIR);
 		if (!uploadDir.exists()) {
@@ -52,23 +60,23 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 				Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
 				AppBannerModel appBannerModel = new AppBannerModel();
-				appBannerModel.setAuthUserId(authUserId);
+				appBannerModel.setAuthUserInfo(authUser);
 				appBannerModel.setAppBannerImage(uniqueFileName);
-
-				// Push data inside actionLogFeignService
-				ActionLogModel actionLogData = new ActionLogModel();
-				actionLogData.setActionByAuthUserId(authUserId);
-				actionLogData.setAuthUserId(authUserId);
-				actionLogData.setActionLogMethod(ActionLogMethod.POST);
-				actionLogData.setActionLogMessage("Banner image(s) uploaded successfully.");
-				actionLogFeignService.addActionLog(actionLogData);
 
 				savedImages.add(appBannerRepository.save(appBannerModel));
 
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new RuntimeException("File upload failed", e);
 			}
 		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Banner image(s) uploaded successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
 
 		List<AppBannerDTO> bannerDTOs = AppBannerMapper.toDTO(savedImages);
 		return new ApiResponse<>("success", "Banner image(s) uploaded successfully.", bannerDTOs);
@@ -77,7 +85,7 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 	@Override
 	public ApiResponse<List<AppBannerDTO>> fetchAllBannerImages() {
 
-		List<AppBannerModel> fetchAllImagesData = appBannerRepository.findAll();
+		List<AppBannerModel> fetchAllImagesData = appBannerRepository.findAllBanners();
 
 		if (fetchAllImagesData.isEmpty()) {
 			return new ApiResponse<>("not found", "No banner image(s) found.", null);

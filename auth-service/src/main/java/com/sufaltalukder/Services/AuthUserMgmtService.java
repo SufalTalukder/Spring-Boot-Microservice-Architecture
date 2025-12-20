@@ -19,6 +19,8 @@ public interface AuthUserMgmtService {
 
 	ApiResponse<AuthUserDTO> getAuthUser(long authUserId);
 
+	ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId);
+
 	ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo);
 
 	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId);

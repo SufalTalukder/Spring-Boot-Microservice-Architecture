@@ -14,11 +14,12 @@ import lombok.Data;
 public class AppBannerModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long appBannerId;
 
-	@Column(name = "auth_user_id")
-	private long authUserId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id", nullable = false)
+	private AuthUserModel authUserInfo;
 
 	@Column(name = "app_banner_image")
 	private String appBannerImage;

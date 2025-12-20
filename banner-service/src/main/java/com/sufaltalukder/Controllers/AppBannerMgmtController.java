@@ -22,12 +22,14 @@ public class AppBannerMgmtController {
 	@Autowired
 	private AuthJwtUtil authJwtUtil;
 
-	@PostMapping("/upload-multi-images")
+	@PostMapping(value = "/upload-multi-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> uploadMulipleImages(
-			@RequestHeader("authToken") String authToken,
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam("appBannerImage") MultipartFile[] appBannerImage) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<AppBannerDTO>> response = appBannerMgmtService.uploadMulipleImages(authUserId,
 					appBannerImage);
@@ -42,9 +44,11 @@ public class AppBannerMgmtController {
 
 	@GetMapping("/get-all-banner-images")
 	public ResponseEntity<ApiResponse<List<AppBannerDTO>>> fetchAllBannerImages(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<AppBannerDTO>> response = appBannerMgmtService.fetchAllBannerImages();
 
@@ -62,9 +66,12 @@ public class AppBannerMgmtController {
 
 	@DeleteMapping("/delete-multi-images")
 	public ResponseEntity<ApiResponse<List<String>>> deleteMultipleBannerImages(
-			@RequestHeader("authToken") String authToken, @RequestBody List<Long> appBannerIds) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestBody List<Long> appBannerIds) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<String>> response = appBannerMgmtService.deleteMultipleBannerImages(authUserId,
 					appBannerIds);

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import com.sufaltalukder.DTOs.ActionLogDTO;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Services.ActionLogMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -31,15 +30,15 @@ public class ActionLogMgmtController {
 		return ResponseEntity.ok(response);
 	}
 
-	@GetMapping("/get-all-action-logs")
-	public ResponseEntity<PaginationApiResponse<List<ActionLogDTO>>> getAllActionLogs(
-			@RequestHeader("authToken") String authToken, @RequestParam(defaultValue = "1") int pageNo,
-			@RequestParam(defaultValue = "25") int pageSize) {
+	@GetMapping("/get-auth-action-logs")
+	public ResponseEntity<ApiResponse<List<ActionLogDTO>>> getAuthActionLogs(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ActionLogDTO>> response = actionLogMgmtService.getAllActionLogs(pageNo,
-					pageSize);
+			ApiResponse<List<ActionLogDTO>> response = actionLogMgmtService.getAuthActionLogs(authUserId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -49,19 +48,20 @@ public class ActionLogMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 
-	@GetMapping("/get-all-user-action-logs")
-	public ResponseEntity<PaginationApiResponse<List<ActionLogDTO>>> getAllAuthUserActionLogs(
-			@RequestHeader("authToken") String authToken, @RequestParam long authUserId,
-			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "25") int pageSize) {
+	@GetMapping("/get-user-action-logs-by-auth")
+	public ResponseEntity<ApiResponse<List<ActionLogDTO>>> getUserActionLogsByAuth(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long rqstAuthUserId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ActionLogDTO>> response = actionLogMgmtService
-					.getAllAuthUserActionLogs(authUserId, pageNo, pageSize);
+			ApiResponse<List<ActionLogDTO>> response = actionLogMgmtService.getUserActionLogsByAuth(rqstAuthUserId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -71,7 +71,7 @@ public class ActionLogMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 }
