@@ -17,11 +17,8 @@ public class LanguageModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long languageId;
 
-	@Column(name = "auth_user_Id", nullable = false)
-	private long authUserId;
-
-	@ManyToOne
-	@JoinColumn(name = "auth_user_id", referencedColumnName = "authUserId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id")
 	private AuthUserModel authUserInfo;
 
 	@Column(name = "language_name", nullable = false)

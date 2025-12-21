@@ -8,13 +8,13 @@ import com.sufaltalukder.Models.LanguageModel;
 
 public interface LanguageMgmtService {
 
-	ApiResponse<LanguageDTO> createLanguage(LanguageModel languageModel);
+	ApiResponse<LanguageDTO> createLanguage(long authUserId, LanguageModel languageModel);
 
 	ApiResponse<LanguageDTO> getLanguage(long authUserId, long languageId);
 
 	ApiResponse<List<LanguageDTO>> getAllLanguages();
 
-	ApiResponse<LanguageDTO> updateLanguage(long languageId, LanguageModel languageModel);
+	ApiResponse<LanguageDTO> updateLanguage(long authUserId, long languageId, LanguageModel languageModel);
 
 	ApiResponse<LanguageDTO> deleteLanguage(long authUserId, long languageId);
 

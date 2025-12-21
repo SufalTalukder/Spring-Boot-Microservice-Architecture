@@ -37,14 +37,15 @@ public class CategoryMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/create-category")
-	public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody CategoryModel categoryModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			categoryModel.setAuthUserId(authUserId);
-
-			ApiResponse<CategoryDTO> response = categoryMgmtService.createCategory(categoryModel);
+			ApiResponse<CategoryDTO> response = categoryMgmtService.createCategory(authUserId, categoryModel);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -59,10 +60,12 @@ public class CategoryMgmtController {
 	}
 
 	@GetMapping("/get-category")
-	public ResponseEntity<ApiResponse<CategoryDTO>> getCategory(@RequestHeader("authToken") String authToken,
-			@RequestParam long categoryId) {
+	public ResponseEntity<ApiResponse<CategoryDTO>> getCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long categoryId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<CategoryDTO> response = categoryMgmtService.getCategory(authUserId, categoryId);
 
@@ -80,9 +83,11 @@ public class CategoryMgmtController {
 
 	@GetMapping("/get-all-categories")
 	public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<CategoryDTO>> response = categoryMgmtService.getAllCategories();
 
@@ -99,14 +104,16 @@ public class CategoryMgmtController {
 	}
 
 	@PutMapping("/update-category-details")
-	public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@RequestHeader("authToken") String authToken,
-			@RequestParam long categoryId, @RequestBody CategoryModel categoryModel) {
+	public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long categoryId,
+			@RequestBody CategoryModel categoryModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			categoryModel.setAuthUserId(authUserId);
-
-			ApiResponse<CategoryDTO> response = categoryMgmtService.updateCategory(categoryId, categoryModel);
+			ApiResponse<CategoryDTO> response = categoryMgmtService.updateCategory(authUserId, categoryId,
+					categoryModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -125,10 +132,12 @@ public class CategoryMgmtController {
 	}
 
 	@DeleteMapping("/delete-category")
-	public ResponseEntity<ApiResponse<CategoryDTO>> deleteCategory(@RequestHeader("authToken") String authToken,
-			@RequestParam long categoryId) {
+	public ResponseEntity<ApiResponse<CategoryDTO>> deleteCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long categoryId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<CategoryDTO> response = categoryMgmtService.deleteCategory(authUserId, categoryId);
 
@@ -145,9 +154,12 @@ public class CategoryMgmtController {
 	}
 
 	@GetMapping("/download-csv-category")
-	public ResponseEntity<ApiResponse<byte[]>> downloadCategoriesCsv(@RequestHeader("authToken") String authToken) {
+	public ResponseEntity<ApiResponse<byte[]>> downloadCategoriesCsv(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			List<CategoryDTO> categories = categoryMgmtService.getAllCategories().getContent();
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			csvUtils.writeCategoriesToCsv(categories, outputStream);
@@ -182,10 +194,13 @@ public class CategoryMgmtController {
 	}
 
 	@PostMapping("/upload-csv-category")
-	public ResponseEntity<ApiResponse<String>> uploadCategoriesCsv(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<String>> uploadCategoriesCsv(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam("file") MultipartFile file) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			try {
 				List<CategoryModel> categories = csvUtils.readCategoriesFromCsv(file.getInputStream());
 				for (CategoryModel category : categories) {
@@ -194,10 +209,10 @@ public class CategoryMgmtController {
 							.getCategoryByName(category.getCategoryName());
 					if (response.getContent() != null) {
 						// Update existing category
-						categoryMgmtService.updateCategory(response.getContent().getCategoryId(), category);
+						categoryMgmtService.updateCategory(authUserId, response.getContent().getCategoryId(), category);
 					} else {
 						// Create new category
-						categoryMgmtService.createCategory(category);
+						categoryMgmtService.createCategory(authUserId, category);
 					}
 				}
 

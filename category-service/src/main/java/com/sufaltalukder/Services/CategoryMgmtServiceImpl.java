@@ -9,8 +9,10 @@ import com.sufaltalukder.DTOs.CategoryDTO;
 import com.sufaltalukder.Mappers.CategoryMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
+import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.CategoryModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
+import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.CategoryRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
@@ -21,10 +23,16 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 	private CategoryRepository categoryRepository;
 
 	@Autowired
+	private AuthUserRepository authUserRepository;
+
+	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
-	public ApiResponse<CategoryDTO> createCategory(CategoryModel categoryModel) {
+	public ApiResponse<CategoryDTO> createCategory(long authUserId, CategoryModel categoryModel) {
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
 		Optional<CategoryModel> isCategoryNameExist = categoryRepository
 				.findByCategoryName(categoryModel.getCategoryName());
@@ -33,21 +41,29 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 			return new ApiResponse<>("exist", "Category already exist!", null);
 		}
 
+		CategoryModel saveData = new CategoryModel();
+		saveData.setAuthUserInfo(authUser);
+		saveData.setCategoryName(categoryModel.getCategoryName());
+		saveData.setCategoryActive(categoryModel.getCategoryActive());
+		saveData.setCategoryCreatedAt(ZonedDateTime.now());
+
+		CategoryModel savedData = categoryRepository.save(saveData);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(categoryModel.getAuthUserId());
-		actionLogData.setAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
 		actionLogData.setActionLogMethod(ActionLogMethod.POST);
 		actionLogData.setActionLogMessage("Category created successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		CategoryModel savedData = categoryRepository.save(categoryModel);
 		return new ApiResponse<>("success", "Category created successfully.", CategoryMapper.toDTO(savedData));
 	}
 
 	@Override
 	public ApiResponse<CategoryDTO> getCategory(long authUserId, long categoryId) {
-		Optional<CategoryModel> isCategoryIdExist = categoryRepository.findById(categoryId);
+
+		Optional<CategoryModel> isCategoryIdExist = categoryRepository.findCategoryByIdOfAuth(categoryId);
 
 		if (isCategoryIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "Category not found.", null);
@@ -67,7 +83,8 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 
 	@Override
 	public ApiResponse<List<CategoryDTO>> getAllCategories() {
-		List<CategoryModel> fetchedAllData = categoryRepository.findAll();
+
+		List<CategoryModel> fetchedAllData = categoryRepository.findAllCategories();
 
 		if (fetchedAllData.isEmpty()) {
 			return new ApiResponse<>("not found", "Categorie(s) not found.", null);
@@ -79,7 +96,11 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 	}
 
 	@Override
-	public ApiResponse<CategoryDTO> updateCategory(long categoryId, CategoryModel categoryModel) {
+	public ApiResponse<CategoryDTO> updateCategory(long authUserId, long categoryId, CategoryModel categoryModel) {
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
 		Optional<CategoryModel> isCategoryIdExist = categoryRepository.findById(categoryId);
 
 		if (isCategoryIdExist.isEmpty()) {
@@ -97,19 +118,21 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 			}
 		}
 
+		categoryToUpdate.setAuthUserInfo(authUser);
 		categoryToUpdate.setCategoryName(categoryModel.getCategoryName());
 		categoryToUpdate.setCategoryActive(categoryModel.getCategoryActive());
 		categoryToUpdate.setCategoryUpdatedAt(ZonedDateTime.now());
 
+		CategoryModel updatedData = categoryRepository.save(categoryToUpdate);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(categoryModel.getAuthUserId());
-		actionLogData.setAuthUserId(categoryModel.getAuthUserId());
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
 		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
 		actionLogData.setActionLogMessage("Category updated successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		CategoryModel updatedData = categoryRepository.save(categoryToUpdate);
 		return new ApiResponse<>("success", "Category updated successfully.", CategoryMapper.toDTO(updatedData));
 	}
 
@@ -121,6 +144,8 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 			return new ApiResponse<>("not found", "Category not found.", null);
 		}
 
+		categoryRepository.deleteById(categoryId);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
 		actionLogData.setActionByAuthUserId(authUserId);
@@ -129,7 +154,6 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 		actionLogData.setActionLogMessage("Category deleted successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		categoryRepository.deleteById(categoryId);
 		return new ApiResponse<>("success", "Category deleted successfully.", null);
 	}
 

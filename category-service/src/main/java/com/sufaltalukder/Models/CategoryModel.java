@@ -17,11 +17,8 @@ public class CategoryModel {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long categoryId;
 
-	@Column(name = "auth_user_id", nullable = false)
-	private long authUserId;
-
-	@ManyToOne
-	@JoinColumn(name = "auth_user_id", referencedColumnName = "authUserId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id")
 	private AuthUserModel authUserInfo;
 
 	@Column(name = "category_name", nullable = false)

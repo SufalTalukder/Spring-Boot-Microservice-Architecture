@@ -23,14 +23,15 @@ public class LanguageMgmtController {
 	private LanguageMgmtService languageMgmtService;
 
 	@PostMapping("/create-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> createLanguage(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<LanguageDTO>> createLanguage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody LanguageModel languageModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			languageModel.setAuthUserId(authUserId);
-
-			ApiResponse<LanguageDTO> response = languageMgmtService.createLanguage(languageModel);
+			ApiResponse<LanguageDTO> response = languageMgmtService.createLanguage(authUserId, languageModel);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -45,10 +46,12 @@ public class LanguageMgmtController {
 	}
 
 	@GetMapping("/get-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> getLanguage(@RequestHeader("authToken") String authToken,
-			@RequestParam long languageId) {
+	public ResponseEntity<ApiResponse<LanguageDTO>> getLanguage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long languageId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<LanguageDTO> response = languageMgmtService.getLanguage(authUserId, languageId);
 
@@ -66,9 +69,11 @@ public class LanguageMgmtController {
 
 	@GetMapping("/get-all-languages")
 	public ResponseEntity<ApiResponse<List<LanguageDTO>>> getAllLanguages(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<LanguageDTO>> response = languageMgmtService.getAllLanguages();
 
@@ -85,14 +90,16 @@ public class LanguageMgmtController {
 	}
 
 	@PutMapping("/update-language-details")
-	public ResponseEntity<ApiResponse<LanguageDTO>> updateLanguage(@RequestHeader("authToken") String authToken,
-			@RequestParam long languageId, @RequestBody LanguageModel languageModel) {
+	public ResponseEntity<ApiResponse<LanguageDTO>> updateLanguage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long languageId,
+			@RequestBody LanguageModel languageModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			languageModel.setAuthUserId(authUserId);
-
-			ApiResponse<LanguageDTO> response = languageMgmtService.updateLanguage(languageId, languageModel);
+			ApiResponse<LanguageDTO> response = languageMgmtService.updateLanguage(authUserId, languageId,
+					languageModel);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -111,10 +118,12 @@ public class LanguageMgmtController {
 	}
 
 	@DeleteMapping("/delete-language")
-	public ResponseEntity<ApiResponse<LanguageDTO>> deleteLanguage(@RequestHeader("authToken") String authToken,
-			@RequestParam long languageId) {
+	public ResponseEntity<ApiResponse<LanguageDTO>> deleteLanguage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long languageId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<LanguageDTO> response = languageMgmtService.deleteLanguage(authUserId, languageId);
 

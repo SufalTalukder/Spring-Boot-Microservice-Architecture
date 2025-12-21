@@ -10,9 +10,9 @@ public class CategoryMapper {
 			return null;
 		}
 
-		return new CategoryDTO(entity.getCategoryId(), entity.getAuthUserId(), entity.getAuthUserInfo(),
-				entity.getCategoryName(), entity.getCategoryImage(), entity.getCategoryActive(),
-				entity.getCategoryCreatedAt(), entity.getCategoryUpdatedAt());
+		return new CategoryDTO(entity.getCategoryId(), entity.getAuthUserInfo(), entity.getCategoryName(),
+				entity.getCategoryImage(), entity.getCategoryActive(), entity.getCategoryCreatedAt(),
+				entity.getCategoryUpdatedAt());
 	}
 
 	public static CategoryModel toEntity(CategoryDTO dto) {
@@ -23,7 +23,6 @@ public class CategoryMapper {
 		CategoryModel entity = new CategoryModel();
 
 		entity.setCategoryId(dto.getCategoryId());
-		entity.setAuthUserId(dto.getAuthUserId());
 		entity.setAuthUserInfo(dto.getAuthUserInfo());
 		entity.setCategoryName(dto.getCategoryName());
 		entity.setCategoryImage(dto.getCategoryImage());
