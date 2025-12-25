@@ -17,32 +17,20 @@ public class ProductModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long productId;
 
-	@Column(name = "auth_user_Id", nullable = false)
-	private long authUserId;
-
-	@ManyToOne
-	@JoinColumn(name = "auth_user_id", referencedColumnName = "authUserId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id")
 	private AuthUserModel authUserInfo;
 
-	@Column(name = "language_id", nullable = false)
-	private long languageId;
-
-	@ManyToOne
-	@JoinColumn(name = "language_id", referencedColumnName = "languageId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "language_id")
 	private LanguageModel languageInfo;
 
-	@Column(name = "category_id", nullable = false)
-	private long categoryId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "category_id")
+	private CategoryModel categoryInfo;
 
-	@ManyToOne
-	@JoinColumn(name = "category_id", referencedColumnName = "categoryId", insertable = false, updatable = false)
-	private CategoryModel categorInfo;
-
-	@Column(name = "sub_category_id", nullable = false)
-	private long subCategoryId;
-
-	@ManyToOne
-	@JoinColumn(name = "sub_category_id", referencedColumnName = "subCategoryId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sub_category_id")
 	private SubCategoryModel subCategoryInfo;
 
 	@Column(name = "product_name", nullable = false)

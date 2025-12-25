@@ -17,13 +17,9 @@ import lombok.*;
 public class ProductDTO {
 
 	private long productId;
-	private long authUserId;
 	private AuthUserModel authUserInfo;
-	private long languageId;
 	private LanguageModel languageInfo;
-	private long categoryId;
-	private CategoryModel categorInfo;
-	private long subCategoryId;
+	private CategoryModel categoryInfo;
 	private SubCategoryModel subCategoryInfo;
 	private String productName;
 	private String productBrand;

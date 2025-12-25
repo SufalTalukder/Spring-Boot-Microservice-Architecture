@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.ProductDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Services.ProductMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
@@ -23,14 +22,19 @@ public class ProductMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/create-product")
-	public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<ProductDTO>> createProduct(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam(value = "categoryId", required = false) long categoryId,
+			@RequestParam(value = "subCategoryId", required = false) long subCategoryId,
+			@RequestParam(value = "languageId", required = false) long languageId,
 			@RequestBody ProductModel productModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			productModel.setAuthUserId(authUserId);
-
-			ApiResponse<ProductDTO> response = productMgmtService.createProduct(productModel);
+			ApiResponse<ProductDTO> response = productMgmtService.createProduct(authUserId, categoryId, subCategoryId,
+					languageId, productModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -50,9 +54,12 @@ public class ProductMgmtController {
 
 	@PostMapping("/multi-product-create")
 	public ResponseEntity<ApiResponse<List<ProductDTO>>> createMultipleProduct(
-			@RequestHeader("authToken") String authToken, @RequestBody List<ProductModel> productModels) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestBody List<ProductModel> productModels) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<ProductDTO>> response = productMgmtService.createMultipleProduct(authUserId,
 					productModels);
@@ -74,10 +81,12 @@ public class ProductMgmtController {
 	}
 
 	@GetMapping("/get-product")
-	public ResponseEntity<ApiResponse<ProductDTO>> getProduct(@RequestHeader("authToken") String authToken,
-			@RequestParam long productId) {
+	public ResponseEntity<ApiResponse<ProductDTO>> getProduct(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long productId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<ProductDTO> response = productMgmtService.getProduct(authUserId, productId);
 
@@ -94,13 +103,14 @@ public class ProductMgmtController {
 	}
 
 	@GetMapping("/get-all-products")
-	public ResponseEntity<PaginationApiResponse<List<ProductDTO>>> getAllProducts(
-			@RequestHeader("authToken") String authToken, @RequestParam(defaultValue = "1") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+	public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProducts(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ProductDTO>> response = productMgmtService.getAllProducts(pageNo, pageSize);
+			ApiResponse<List<ProductDTO>> response = productMgmtService.getAllProducts();
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -110,19 +120,24 @@ public class ProductMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 
 	@PutMapping("/update-product-details")
-	public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@RequestHeader("authToken") String authToken,
-			@RequestParam long productId, @RequestBody ProductModel productModel) {
+	public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long productId,
+			@RequestParam(value = "categoryId", required = false) long categoryId,
+			@RequestParam(value = "subCategoryId", required = false) long subCategoryId,
+			@RequestParam(value = "languageId", required = false) long languageId,
+			@RequestBody ProductModel productModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			productModel.setAuthUserId(authUserId);
-
-			ApiResponse<ProductDTO> response = productMgmtService.updateProduct(productId, productModel);
+			ApiResponse<ProductDTO> response = productMgmtService.updateProduct(authUserId, productId, categoryId,
+					subCategoryId, languageId, productModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -141,10 +156,12 @@ public class ProductMgmtController {
 	}
 
 	@DeleteMapping("/delete-product")
-	public ResponseEntity<ApiResponse<ProductDTO>> deleteProduct(@RequestHeader("authToken") String authToken,
-			@RequestParam long productId) {
+	public ResponseEntity<ApiResponse<ProductDTO>> deleteProduct(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long productId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<ProductDTO> response = productMgmtService.deleteProduct(authUserId, productId);
 
@@ -162,9 +179,11 @@ public class ProductMgmtController {
 
 	@GetMapping("/search-product")
 	public ResponseEntity<ApiResponse<List<ProductDTO>>> getSearchedResults(
-			@RequestHeader("authToken") String authToken, @RequestParam String q) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam String q) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<ProductDTO>> response = productMgmtService.getSearchedResults(q);
 
@@ -181,17 +200,15 @@ public class ProductMgmtController {
 	}
 
 	// Filter by Language
-	@GetMapping("/get-all-products-by-language/{languageId}")
-	public ResponseEntity<PaginationApiResponse<List<ProductDTO>>> getAllProductsFilterByLanguage(
-			@RequestHeader("authToken") String authToken, @PathVariable long languageId,
-			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize,
-			@RequestParam(defaultValue = "productName") String sortBy,
-			@RequestParam(defaultValue = "asc") String sortDir) {
+	@GetMapping("/get-all-products-by-language")
+	public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProductsFilterByLanguage(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long languageId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ProductDTO>> response = productMgmtService
-					.getAllProductsFilterByLanguage(languageId, pageNo, pageSize, sortBy, sortDir);
+			ApiResponse<List<ProductDTO>> response = productMgmtService.getAllProductsFilterByLanguage(languageId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -201,22 +218,20 @@ public class ProductMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 
 	// Filter by Category
-	@GetMapping("/get-all-products-by-category/{categoryId}")
-	public ResponseEntity<PaginationApiResponse<List<ProductDTO>>> getAllProductsFilterByCategory(
-			@RequestHeader("authToken") String authToken, @PathVariable long categoryId,
-			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize,
-			@RequestParam(defaultValue = "productName") String sortBy,
-			@RequestParam(defaultValue = "asc") String sortDir) {
+	@GetMapping("/get-all-products-by-category")
+	public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProductsFilterByCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long categoryId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ProductDTO>> response = productMgmtService
-					.getAllProductsFilterByCategory(categoryId, pageNo, pageSize, sortBy, sortDir);
+			ApiResponse<List<ProductDTO>> response = productMgmtService.getAllProductsFilterByCategory(categoryId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -226,22 +241,22 @@ public class ProductMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 
 	// Filter by SubCategory
-	@GetMapping("/read-all-products-by-subcategory/{subCategoryId}")
-	public ResponseEntity<PaginationApiResponse<List<ProductDTO>>> getAllProductsFilterBySubCategory(
-			@RequestHeader("authToken") String authToken, @PathVariable long subCategoryId,
-			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize,
-			@RequestParam(defaultValue = "productName") String sortBy,
-			@RequestParam(defaultValue = "asc") String sortDir) {
+	@GetMapping("/read-all-products-by-subcategory")
+	public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProductsFilterBySubCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long subCategoryId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			PaginationApiResponse<List<ProductDTO>> response = productMgmtService
-					.getAllProductsFilterBySubCategory(subCategoryId, pageNo, pageSize, sortBy, sortDir);
+			ApiResponse<List<ProductDTO>> response = productMgmtService
+					.getAllProductsFilterBySubCategory(subCategoryId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -251,7 +266,7 @@ public class ProductMgmtController {
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 

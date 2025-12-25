@@ -4,32 +4,30 @@ import java.util.List;
 
 import com.sufaltalukder.DTOs.ProductDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Models.ProductModel;
 
 public interface ProductMgmtService {
 
-	ApiResponse<ProductDTO> createProduct(ProductModel productModel);
+	ApiResponse<ProductDTO> createProduct(long authUserId, long categoryId, long subCategoryId, long languageId,
+			ProductModel productModel);
 
 	ApiResponse<List<ProductDTO>> createMultipleProduct(long authUserId, List<ProductModel> productModels);
 
 	ApiResponse<ProductDTO> getProduct(long authUserId, long productId);
 
-	PaginationApiResponse<List<ProductDTO>> getAllProducts(int pageNo, int pageSize);
+	ApiResponse<List<ProductDTO>> getAllProducts();
 
-	ApiResponse<ProductDTO> updateProduct(long productId, ProductModel productModel);
+	ApiResponse<ProductDTO> updateProduct(long authUserId, long productId, long categoryId, long subCategoryId,
+			long languageId, ProductModel productModel);
 
 	ApiResponse<ProductDTO> deleteProduct(long authUserId, long productId);
 
 	ApiResponse<List<ProductDTO>> getSearchedResults(String q);
 
-	PaginationApiResponse<List<ProductDTO>> getAllProductsFilterByLanguage(long languageId, int pageNo, int pageSize,
-			String sortBy, String sortDir);
+	ApiResponse<List<ProductDTO>> getAllProductsFilterByLanguage(long languageId);
 
-	PaginationApiResponse<List<ProductDTO>> getAllProductsFilterByCategory(long categoryId, int pageNo, int pageSize,
-			String sortBy, String sortDir);
+	ApiResponse<List<ProductDTO>> getAllProductsFilterByCategory(long categoryId);
 
-	PaginationApiResponse<List<ProductDTO>> getAllProductsFilterBySubCategory(long subCategoryId, int pageNo,
-			int pageSize, String sortBy, String sortDir);
+	ApiResponse<List<ProductDTO>> getAllProductsFilterBySubCategory(long subCategoryId);
 
 }

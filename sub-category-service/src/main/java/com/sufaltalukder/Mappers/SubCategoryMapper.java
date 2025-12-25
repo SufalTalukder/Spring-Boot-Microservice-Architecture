@@ -10,9 +10,9 @@ public class SubCategoryMapper {
 			return null;
 		}
 
-		return new SubCategoryDTO(entity.getSubCategoryId(), entity.getAuthUserId(), entity.getAuthUserInfo(),
-				entity.getSubCategoryName(), entity.getSubCategoryImage(), entity.getSubCategoryActive(),
-				entity.getSubCategoryCreatedAt(), entity.getSubCategoryUpdatedAt());
+		return new SubCategoryDTO(entity.getSubCategoryId(), entity.getAuthUserInfo(), entity.getSubCategoryName(),
+				entity.getSubCategoryImage(), entity.getSubCategoryActive(), entity.getSubCategoryCreatedAt(),
+				entity.getSubCategoryUpdatedAt());
 	}
 
 	public static SubCategoryModel toEntity(SubCategoryDTO dto) {
@@ -23,7 +23,6 @@ public class SubCategoryMapper {
 		SubCategoryModel entity = new SubCategoryModel();
 
 		entity.setSubCategoryId(dto.getSubCategoryId());
-		entity.setAuthUserId(dto.getAuthUserId());
 		entity.setAuthUserInfo(dto.getAuthUserInfo());
 		entity.setSubCategoryName(dto.getSubCategoryName());
 		entity.setSubCategoryImage(dto.getSubCategoryImage());

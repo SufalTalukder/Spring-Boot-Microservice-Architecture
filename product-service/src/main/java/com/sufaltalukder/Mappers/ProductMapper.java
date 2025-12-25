@@ -13,13 +13,11 @@ public class ProductMapper {
 			return null;
 		}
 
-		return new ProductDTO(entity.getProductId(), entity.getAuthUserId(), entity.getAuthUserInfo(),
-				entity.getLanguageId(), entity.getLanguageInfo(), entity.getCategoryId(), entity.getCategorInfo(),
-				entity.getSubCategoryId(), entity.getSubCategoryInfo(), entity.getProductName(),
-				entity.getProductBrand(), entity.getProductCode(), entity.getProductAvailability(),
-				entity.getProductPrice(), entity.getProductDetails(), entity.getProductImage(),
-				entity.getProductStock(), entity.getProductActive(), entity.getProductCreatedAt(),
-				entity.getProductUpdatedAt());
+		return new ProductDTO(entity.getProductId(), entity.getAuthUserInfo(), entity.getLanguageInfo(),
+				entity.getCategoryInfo(), entity.getSubCategoryInfo(), entity.getProductName(), entity.getProductBrand(),
+				entity.getProductCode(), entity.getProductAvailability(), entity.getProductPrice(),
+				entity.getProductDetails(), entity.getProductImage(), entity.getProductStock(),
+				entity.getProductActive(), entity.getProductCreatedAt(), entity.getProductUpdatedAt());
 	}
 
 	public static ProductModel toEntity(ProductDTO dto) {
@@ -30,13 +28,9 @@ public class ProductMapper {
 		ProductModel entity = new ProductModel();
 
 		entity.setProductId(dto.getProductId());
-		entity.setAuthUserId(dto.getAuthUserId());
 		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setLanguageId(dto.getLanguageId());
 		entity.setLanguageInfo(dto.getLanguageInfo());
-		entity.setCategoryId(dto.getCategoryId());
-		entity.setCategorInfo(dto.getCategorInfo());
-		entity.setSubCategoryId(dto.getSubCategoryId());
+		entity.setCategoryInfo(dto.getCategoryInfo());
 		entity.setSubCategoryInfo(dto.getSubCategoryInfo());
 		entity.setProductName(dto.getProductName());
 		entity.setProductBrand(dto.getProductBrand());

@@ -35,14 +35,16 @@ public class SubCategoryMgmtController {
 	private ExcelUtils excelUtils;
 
 	@PostMapping("/create-subcategory")
-	public ResponseEntity<ApiResponse<SubCategoryDTO>> createSubCategory(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<SubCategoryDTO>> createSubCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody SubCategoryModel subCategoryModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			subCategoryModel.setAuthUserId(authUserId);
-
-			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.createSubCategory(subCategoryModel);
+			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.createSubCategory(authUserId,
+					subCategoryModel);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -57,10 +59,13 @@ public class SubCategoryMgmtController {
 	}
 
 	@GetMapping("/get-subcategory")
-	public ResponseEntity<ApiResponse<SubCategoryDTO>> getSubCategory(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<SubCategoryDTO>> getSubCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam long subCategoryId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.getSubCategory(authUserId, subCategoryId);
 
@@ -78,9 +83,11 @@ public class SubCategoryMgmtController {
 
 	@GetMapping("/get-all-subcategory")
 	public ResponseEntity<ApiResponse<List<SubCategoryDTO>>> getAllSubCategories(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<SubCategoryDTO>> response = subCategoryMgmtService.getAllSubCategories();
 
@@ -97,14 +104,15 @@ public class SubCategoryMgmtController {
 	}
 
 	@PutMapping("/update-subcategory-details")
-	public ResponseEntity<ApiResponse<SubCategoryDTO>> updateSubCategory(@RequestHeader("authToken") String authToken,
-			@RequestParam long subCategoryId, @RequestBody SubCategoryModel subCategoryModel) {
+	public ResponseEntity<ApiResponse<SubCategoryDTO>> updateSubCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long subCategoryId,
+			@RequestBody SubCategoryModel subCategoryModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			subCategoryModel.setAuthUserId(authUserId);
-
-			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.updateSubCategory(subCategoryId,
+			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.updateSubCategory(authUserId, subCategoryId,
 					subCategoryModel);
 
 			if ("not found".equals(response.getStatus())) {
@@ -124,10 +132,13 @@ public class SubCategoryMgmtController {
 	}
 
 	@DeleteMapping("/delete-subcategory")
-	public ResponseEntity<ApiResponse<SubCategoryDTO>> deleteSubCategory(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<SubCategoryDTO>> deleteSubCategory(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam long subCategoryId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<SubCategoryDTO> response = subCategoryMgmtService.deleteSubCategory(authUserId, subCategoryId);
 
@@ -145,9 +156,11 @@ public class SubCategoryMgmtController {
 
 	@GetMapping("/download-subcategory-excel")
 	public ResponseEntity<ApiResponse<byte[]>> downloadSubCategoriesExcel(
-			@RequestHeader("authToken") String authToken) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			List<SubCategoryDTO> subCategories = subCategoryMgmtService.getAllSubCategories().getContent();
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			try {
@@ -176,10 +189,13 @@ public class SubCategoryMgmtController {
 	}
 
 	@PostMapping("/upload-subcategory-excel")
-	public ResponseEntity<ApiResponse<String>> uploadSubCategoriesExcel(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<String>> uploadSubCategoriesExcel(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam("file") MultipartFile file) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			try {
 				List<SubCategoryModel> subCategories = excelUtils.readSubCategoriesFromExcel(file.getInputStream());
 				for (SubCategoryModel subCategory : subCategories) {
@@ -190,14 +206,15 @@ public class SubCategoryMgmtController {
 								subCategory.getSubCategoryId());
 						if ("success".equals(response.getStatus())) {
 							// Update existing subCategory
-							subCategoryMgmtService.updateSubCategory(subCategory.getSubCategoryId(), subCategory);
+							subCategoryMgmtService.updateSubCategory(authUserId, subCategory.getSubCategoryId(),
+									subCategory);
 						} else {
 							// If not found, create a new subCategory
-							subCategoryMgmtService.createSubCategory(subCategory);
+							subCategoryMgmtService.createSubCategory(authUserId, subCategory);
 						}
 					} else {
 						// If no ID is provided, create a new subCategory
-						subCategoryMgmtService.createSubCategory(subCategory);
+						subCategoryMgmtService.createSubCategory(authUserId, subCategory);
 					}
 				}
 

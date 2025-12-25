@@ -10,8 +10,10 @@ import com.sufaltalukder.DTOs.SubCategoryDTO;
 import com.sufaltalukder.Mappers.SubCategoryMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
+import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.SubCategoryModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
+import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.SubCategoryRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
@@ -22,10 +24,17 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 	private SubCategoryRepository subCategoryRepository;
 
 	@Autowired
+	private AuthUserRepository authUserRepository;
+
+	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
-	public ApiResponse<SubCategoryDTO> createSubCategory(SubCategoryModel subCategoryModel) {
+	public ApiResponse<SubCategoryDTO> createSubCategory(long authUserId, SubCategoryModel subCategoryModel) {
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
 		SubCategoryModel isSubCategoryNameExist = subCategoryRepository
 				.findBySubCategoryName(subCategoryModel.getSubCategoryName());
 
@@ -33,21 +42,29 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 			return new ApiResponse<>("exist", "SubCategory already exist!", null);
 		}
 
+		SubCategoryModel savedData = new SubCategoryModel();
+		savedData.setAuthUserInfo(authUser);
+		savedData.setSubCategoryName(subCategoryModel.getSubCategoryName());
+		savedData.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
+		savedData.setSubCategoryCreatedAt(ZonedDateTime.now());
+
+		SubCategoryModel saveData = subCategoryRepository.save(savedData);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(subCategoryModel.getAuthUserId());
-		actionLogData.setAuthUserId(subCategoryModel.getAuthUserId());
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
 		actionLogData.setActionLogMethod(ActionLogMethod.POST);
 		actionLogData.setActionLogMessage("SubCategory added successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		SubCategoryModel saveData = subCategoryRepository.save(subCategoryModel);
 		return new ApiResponse<>("success", "SubCategory added successfully.", SubCategoryMapper.toDTO(saveData));
 	}
 
 	@Override
 	public ApiResponse<List<SubCategoryDTO>> getAllSubCategories() {
-		List<SubCategoryModel> fetchedAllData = subCategoryRepository.findAll();
+
+		List<SubCategoryModel> fetchedAllData = subCategoryRepository.findAllSubCategories();
 
 		if (fetchedAllData.isEmpty()) {
 			return new ApiResponse<>("not found", "No subcategori(s) found.", null);
@@ -60,7 +77,8 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 
 	@Override
 	public ApiResponse<SubCategoryDTO> getSubCategory(long authUserId, long subCategoryId) {
-		Optional<SubCategoryModel> isCategoryIdExist = subCategoryRepository.findById(subCategoryId);
+
+		Optional<SubCategoryModel> isCategoryIdExist = subCategoryRepository.findSubcategoryByIdOfAuth(subCategoryId);
 
 		if (isCategoryIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "SubCategory not found.", null);
@@ -79,7 +97,12 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 	}
 
 	@Override
-	public ApiResponse<SubCategoryDTO> updateSubCategory(long subCategoryId, SubCategoryModel subCategoryModel) {
+	public ApiResponse<SubCategoryDTO> updateSubCategory(long authUserId, long subCategoryId,
+			SubCategoryModel subCategoryModel) {
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
 		Optional<SubCategoryModel> isSubCategoryIdExist = subCategoryRepository.findById(subCategoryId);
 
 		if (isSubCategoryIdExist.isEmpty()) {
@@ -94,29 +117,34 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		}
 
 		SubCategoryModel updatedSubCategoryObj = isSubCategoryIdExist.get();
+		updatedSubCategoryObj.setAuthUserInfo(authUser);
 		updatedSubCategoryObj.setSubCategoryName(subCategoryModel.getSubCategoryName());
 		updatedSubCategoryObj.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
 		updatedSubCategoryObj.setSubCategoryUpdatedAt(ZonedDateTime.now());
 
+		SubCategoryModel updatedData = subCategoryRepository.save(updatedSubCategoryObj);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(subCategoryModel.getAuthUserId());
-		actionLogData.setAuthUserId(subCategoryModel.getAuthUserId());
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
 		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
 		actionLogData.setActionLogMessage("SubCategory updated successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		SubCategoryModel updatedData = subCategoryRepository.save(updatedSubCategoryObj);
 		return new ApiResponse<>("success", "SubCategory updated successfully.", SubCategoryMapper.toDTO(updatedData));
 	}
 
 	@Override
 	public ApiResponse<SubCategoryDTO> deleteSubCategory(long authUserId, long subCategoryId) {
+
 		Optional<SubCategoryModel> isSubCategoryIdExist = subCategoryRepository.findById(subCategoryId);
 
 		if (isSubCategoryIdExist.isEmpty()) {
 			return new ApiResponse<>("not found", "SubCategory not found.", null);
 		}
+
+		subCategoryRepository.deleteById(subCategoryId);
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -126,7 +154,6 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		actionLogData.setActionLogMessage("SubCategory deleted successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		subCategoryRepository.deleteById(subCategoryId);
 		return new ApiResponse<>("success", "SubCategory deleted successfully.", null);
 	}
 

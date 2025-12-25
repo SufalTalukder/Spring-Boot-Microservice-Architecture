@@ -13,7 +13,6 @@ import lombok.*;
 public class SubCategoryDTO {
 
 	private long subCategoryId;
-	private long authUserId;
 	private AuthUserModel authUserInfo;
 	private String subCategoryName;
 	private String subCategoryImage;

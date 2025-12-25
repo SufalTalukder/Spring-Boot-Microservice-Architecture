@@ -2,7 +2,6 @@ package com.sufaltalukder.Repositories;
 
 import java.util.*;
 
-import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +15,7 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
 			    SELECT p FROM ProductModel p
 			    LEFT JOIN p.languageInfo l
 			    LEFT JOIN p.subCategoryInfo s
-			    LEFT JOIN p.categorInfo c
+			    LEFT JOIN p.categoryInfo c
 			    WHERE LOWER(p.productName) LIKE LOWER(CONCAT('%', :q, '%'))
 			       OR LOWER(p.productBrand) LIKE LOWER(CONCAT('%', :q, '%'))
 			       OR CAST(p.productCode AS string) LIKE CONCAT('%', :q, '%')
@@ -33,12 +32,60 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
 
 	List<ProductModel> findByProductNameIn(List<String> productNames);
 
-	Page<ProductModel> findByLanguageId(Long languageId, Pageable pageable);
+	@Query("""
+				SELECT p
+				FROM ProductModel p
+				LEFT JOIN FETCH p.authUserInfo
+				LEFT JOIN FETCH p.languageInfo
+				LEFT JOIN FETCH p.categoryInfo
+				LEFT JOIN FETCH p.subCategoryInfo
+				WHERE p.languageInfo = :languageId
+			""")
+	List<ProductModel> findProductsByLanguageId(@Param("languageId") long languageId);
 
-	Page<ProductModel> findByCategoryId(Long categoryId, Pageable pageable);
+	@Query("""
+				SELECT p
+				FROM ProductModel p
+				LEFT JOIN FETCH p.authUserInfo
+				LEFT JOIN FETCH p.languageInfo
+				LEFT JOIN FETCH p.categoryInfo
+				LEFT JOIN FETCH p.subCategoryInfo
+				WHERE p.categoryInfo = :categoryId
+			""")
+	List<ProductModel> findProductsByCategoryId(@Param("categoryId") long categoryId);
 
-	Page<ProductModel> findBySubCategoryId(Long subCategoryId, Pageable pageable);
+	@Query("""
+				SELECT p
+				FROM ProductModel p
+				LEFT JOIN FETCH p.authUserInfo
+				LEFT JOIN FETCH p.languageInfo
+				LEFT JOIN FETCH p.categoryInfo
+				LEFT JOIN FETCH p.subCategoryInfo
+				WHERE p.subCategoryInfo = :subCategoryId
+			""")
+	List<ProductModel> findProductsBySubCategoryId(@Param("subCategoryId") long subCategoryId);
 
 	Optional<ProductModel> findByProductId(long productId);
+
+	@Query("""
+				SELECT p
+				FROM ProductModel p
+				LEFT JOIN FETCH p.authUserInfo
+				LEFT JOIN FETCH p.languageInfo
+				LEFT JOIN FETCH p.categoryInfo
+				LEFT JOIN FETCH p.subCategoryInfo
+			""")
+	List<ProductModel> findAllProducts();
+
+	@Query("""
+				SELECT p
+				FROM ProductModel p
+				LEFT JOIN FETCH p.authUserInfo
+				LEFT JOIN FETCH p.languageInfo
+				LEFT JOIN FETCH p.categoryInfo
+				LEFT JOIN FETCH p.subCategoryInfo
+				WHERE p.productId = :productId
+			""")
+	Optional<ProductModel> findProductByIdOfACSL(@Param("productId") long productId);
 
 }
