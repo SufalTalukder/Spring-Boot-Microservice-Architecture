@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients(basePackages = "com.sufaltalukder.feign.Services")
 public class UserServiceApp {
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApp.class, args);
