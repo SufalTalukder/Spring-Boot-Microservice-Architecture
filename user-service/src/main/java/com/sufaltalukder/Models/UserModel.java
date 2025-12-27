@@ -18,8 +18,9 @@ public class UserModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long userId;
 
-	@Column(name = "auth_user_Id")
-	private long authUserId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id")
+	private AuthUserModel authUserInfo;
 
 	@Column(name = "full_name")
 	private String fullName;

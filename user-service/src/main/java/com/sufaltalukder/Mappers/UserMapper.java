@@ -10,7 +10,7 @@ public class UserMapper {
 			return null;
 		}
 
-		return new UserDTO(entity.getUserId(), entity.getAuthUserId(), entity.getFullName(), entity.getPhoneNumber(),
+		return new UserDTO(entity.getUserId(), entity.getAuthUserInfo(), entity.getFullName(), entity.getPhoneNumber(),
 				entity.getEmailAddress(), entity.getDob(), entity.getUserImage(), entity.getUserAddress(),
 				entity.getUserReferralCode(), entity.getUserActive(), entity.getUserCreatedAt(),
 				entity.getUserUpdatedAt());
@@ -24,7 +24,7 @@ public class UserMapper {
 		UserModel entity = new UserModel();
 
 		entity.setUserId(dto.getUserId());
-		entity.setAuthUserId(dto.getAuthUserId());
+		entity.setAuthUserInfo(dto.getAuthUserInfo());
 		entity.setFullName(dto.getFullName());
 		entity.setPhoneNumber(dto.getPhoneNumber());
 		entity.setEmailAddress(dto.getEmailAddress());

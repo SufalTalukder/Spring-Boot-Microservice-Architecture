@@ -3,6 +3,7 @@ package com.sufaltalukder.DTOs;
 import java.sql.Date;
 import java.time.ZonedDateTime;
 
+import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.UserModel.UserActive;
 
 import lombok.*;
@@ -13,7 +14,7 @@ import lombok.*;
 public class UserDTO {
 
 	private long userId;
-	private long authUserId;
+	private AuthUserModel authUserInfo;
 	private String fullName;
 	private String phoneNumber;
 	private String emailAddress;

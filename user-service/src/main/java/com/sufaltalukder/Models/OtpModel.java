@@ -11,14 +11,11 @@ import lombok.Data;
 public class OtpModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long otpId;
 
-	@Column(name = "user_id", nullable = false)
-	private long userId;
-
-	@ManyToOne
-	@JoinColumn(name = "user_id", referencedColumnName = "userId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
 	private UserModel userInfo;
 
 	@Column(name = "phone_number")

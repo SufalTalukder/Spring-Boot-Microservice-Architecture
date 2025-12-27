@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<OtpResponse> requestPhoneNumber(String phoneNumber) {
+
 		List<UserModel> existingUsers = userRepository.findByPhoneNumber(phoneNumber);
 		List<OtpModel> existingOtpRecords = otpRepository.findByPhoneNumber(phoneNumber);
 
@@ -69,7 +70,10 @@ public class UserServiceImpl implements UserService {
 			targetUser.setUserActive(UserActive.YES);
 			userRepository.save(targetUser);
 
-			targetOtp.setUserId(targetUser.getUserId());
+			UserModel user = userRepository.findById(targetUser.getUserId())
+					.orElseThrow(() -> new RuntimeException("User not found"));
+
+			targetOtp.setUserInfo(user);
 			targetOtp.setPhoneNumber(phoneNumber);
 			targetOtp.setOtp(generatedOtp);
 			targetOtp.setOtpVerified(false);
@@ -104,8 +108,11 @@ public class UserServiceImpl implements UserService {
 
 	// To create and save the OTP record
 	private void saveOtpForUser(long userId, String phoneNumber, String otp, LocalDateTime expirationTime) {
+
+		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
 		OtpModel otpRecord = new OtpModel();
-		otpRecord.setUserId(userId);
+		otpRecord.setUserInfo(user);
 		otpRecord.setPhoneNumber(phoneNumber);
 		otpRecord.setOtp(otp);
 		otpRecord.setOtpVerified(false);
@@ -115,6 +122,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<AuthTokenResponse> verifyOtp(String phoneNumber, String otp) {
+
 		List<UserModel> users = userRepository.findByPhoneNumber(phoneNumber);
 		List<OtpModel> otpRecords = otpRepository.findByPhoneNumber(phoneNumber);
 
@@ -172,6 +180,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<UserDTO> fetchUser(long userId) {
+
 		Optional<UserModel> isUserExist = userRepository.findById(userId);
 
 		if (isUserExist.isEmpty()) {
@@ -183,6 +192,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<String> fetchUserReferralCode(long userId) {
+
 		Optional<UserModel> isUserExist = userRepository.findById(userId);
 
 		if (isUserExist.isEmpty()) {
@@ -195,6 +205,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<String> uploadImage(long userId, MultipartFile file) {
+
 		Optional<UserModel> isUserExist = userRepository.findById(userId);
 
 		if (isUserExist.isPresent()) {
@@ -220,7 +231,9 @@ public class UserServiceImpl implements UserService {
 				Files.copy(file.getInputStream(), newFilePath);
 				user.setUserImage(newFileName);
 				userRepository.save(user);
+
 				return new ApiResponse<>("success", "User image uploaded successfully.", newFileName);
+
 			} catch (Exception e) {
 				return new ApiResponse<>("error", "Failed to upload user image: " + e.getMessage(), null);
 			}
@@ -231,7 +244,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse<UserDTO> updateDetail(long userId, UserModel userModel) {
+
 		Optional<UserModel> isUserExist = userRepository.findById(userId);
+
 		if (isUserExist.isEmpty()) {
 			return new ApiResponse<>("not found", "User not found.", null);
 		}
@@ -243,6 +258,7 @@ public class UserServiceImpl implements UserService {
 		newUserData.setUserAddress(userModel.getUserAddress());
 		newUserData.setUserUpdatedAt(ZonedDateTime.now());
 		UserModel updateUser = userRepository.save(newUserData);
+
 		return new ApiResponse<>("success", "User detail updated successfully.", UserMapper.toDTO(updateUser));
 	}
 
