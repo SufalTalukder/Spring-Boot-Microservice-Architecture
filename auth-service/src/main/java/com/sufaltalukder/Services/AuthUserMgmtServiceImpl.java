@@ -40,6 +40,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword) {
+		
 		AuthUserModel user = authUserRepository.findByAuthUserEmailAddress(authUserEmailAddress);
 
 		if (user == null) {
@@ -66,6 +67,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo) {
+		
 		String rawPassword = authUserInfo.getAuthUserPassword();
 
 		if (rawPassword == null || rawPassword.isEmpty()) {
@@ -97,6 +99,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<String> uploadImage(long authUserId, MultipartFile file) {
+		
 		Optional<AuthUserModel> isUserExits = authUserRepository.findById(authUserId);
 
 		if (isUserExits.isPresent()) {
@@ -142,6 +145,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<List<AuthUserDTO>> getAllAuthUsers() {
+		
 		List<AuthUserModel> fetchAllAuthUsers = authUserRepository.findAll();
 
 		if (fetchAllAuthUsers.isEmpty()) {
@@ -149,11 +153,13 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		}
 
 		List<AuthUserDTO> dtos = fetchAllAuthUsers.stream().map(AuthUserMapper::toDTO).toList();
+		
 		return new ApiResponse<>("success", "All auth users fetched successfully.", dtos);
 	}
 
 	@Override
 	public ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId) {
+		
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -166,6 +172,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> getAuthUser(long authUserId) {
+		
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -178,6 +185,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo) {
+		
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserInfo.getActionByUserId());
 		if (fetchAuthUser.isEmpty()) {
 			return new ApiResponse<>("not found", "Auth user not found.", null);
@@ -206,6 +214,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId) {
+		
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(rqstAuthUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -226,6 +235,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<Void> deleteAllAuthUsers(long authUserId, List<Long> rqstAuthUserIds) {
+		
 		for (Long rqstAuthUserId : rqstAuthUserIds) {
 			if (!authUserRepository.existsById(rqstAuthUserId)) {
 				return new ApiResponse<>("not found", "Some auth users were not found.", null);
