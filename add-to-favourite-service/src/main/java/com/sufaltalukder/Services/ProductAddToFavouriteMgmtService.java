@@ -4,16 +4,13 @@ import java.util.List;
 
 import com.sufaltalukder.DTOs.ProductAddToFavouriteDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
-import com.sufaltalukder.Models.ProductAddToFavouriteModel;
 
 public interface ProductAddToFavouriteMgmtService {
 
-	ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(ProductAddToFavouriteModel productAddToFavouriteModel);
+	ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(long authUserId, long userId, long productId);
 
-	PaginationApiResponse<List<ProductAddToFavouriteDTO>> getUserFavourites(long userId, int pageNo, int pageSize,
-			String sortBy, String sortDir);
+	ApiResponse<List<ProductAddToFavouriteDTO>> getUserFavourites();
 
-	ApiResponse<Void> removeUserFavourite(long addToFavouriteId, long userId);
+	ApiResponse<Void> removeUserFavourite(long authUserId, long addToFavouriteId, long userId);
 
 }

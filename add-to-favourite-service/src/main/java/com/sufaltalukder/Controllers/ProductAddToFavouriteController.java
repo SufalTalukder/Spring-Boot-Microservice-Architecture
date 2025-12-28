@@ -25,13 +25,12 @@ public class ProductAddToFavouriteController {
 
 	@PostMapping("/add-to-favourite")
 	public ResponseEntity<ApiResponse<ProductAddToFavouriteDTO>> createUserFavourite(@RequestHeader String authToken,
-			@RequestBody ProductAddToFavouriteModel productAddToFavouriteModel) {
+			long productId, @RequestBody ProductAddToFavouriteModel productAddToFavouriteModel) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
-			productAddToFavouriteModel.setUserId(userId);
 
-			ApiResponse<ProductAddToFavouriteDTO> response = productAddToFavouriteService
-					.createUserFavourite(productAddToFavouriteModel);
+			ApiResponse<ProductAddToFavouriteDTO> response = productAddToFavouriteService.createUserFavourite(userId,
+					productId, productAddToFavouriteModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

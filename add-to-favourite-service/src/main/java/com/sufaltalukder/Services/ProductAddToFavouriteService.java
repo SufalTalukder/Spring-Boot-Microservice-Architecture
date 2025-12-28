@@ -9,7 +9,8 @@ import com.sufaltalukder.Models.ProductAddToFavouriteModel;
 
 public interface ProductAddToFavouriteService {
 
-	ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(ProductAddToFavouriteModel productAddToFavouriteModel);
+	ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(long userId, long productId,
+			ProductAddToFavouriteModel productAddToFavouriteModel);
 
 	PaginationApiResponse<List<ProductAddToFavouriteDTO>> getUserFavourites(long userId, int pageNo, int pageSize,
 			String sortBy, String sortDir);

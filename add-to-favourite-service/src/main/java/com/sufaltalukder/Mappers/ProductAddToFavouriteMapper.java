@@ -10,8 +10,8 @@ public class ProductAddToFavouriteMapper {
 			return null;
 		}
 
-		return new ProductAddToFavouriteDTO(entity.getAddToFavouriteId(), entity.getAuthUserId(), entity.getUserId(),
-				entity.getProductId(), entity.getProductInfo(), entity.getFavouriteCreatedAt());
+		return new ProductAddToFavouriteDTO(entity.getAddToFavouriteId(), entity.getAuthUserInfo(),
+				entity.getUserInfo(), entity.getProductInfo(), entity.getFavouriteCreatedAt());
 	}
 
 	public static ProductAddToFavouriteModel toEntity(ProductAddToFavouriteDTO dto) {
@@ -22,9 +22,8 @@ public class ProductAddToFavouriteMapper {
 		ProductAddToFavouriteModel entity = new ProductAddToFavouriteModel();
 
 		entity.setAddToFavouriteId(dto.getAddToFavouriteId());
-		entity.setAuthUserId(dto.getAuthUserId());
-		entity.setUserId(dto.getUserId());
-		entity.setProductId(dto.getProductId());
+		entity.setAuthUserInfo(dto.getAuthUserInfo());
+		entity.setUserInfo(dto.getUserInfo());
 		entity.setProductInfo(dto.getProductInfo());
 		entity.setFavouriteCreatedAt(dto.getFavouriteCreatedAt());
 

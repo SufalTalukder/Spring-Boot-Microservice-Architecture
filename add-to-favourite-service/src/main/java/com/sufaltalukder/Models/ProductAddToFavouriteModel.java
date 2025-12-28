@@ -16,17 +16,16 @@ public class ProductAddToFavouriteModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long addToFavouriteId;
 
-	@Column(name = "auth_user_id")
-	private long authUserId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "auth_user_id")
+	private AuthUserModel authUserInfo;
 
-	@Column(name = "user_id")
-	private long userId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private UserModel userInfo;
 
-	@Column(name = "product_id", nullable = false)
-	private long productId;
-
-	@ManyToOne
-	@JoinColumn(name = "product_id", referencedColumnName = "productId", insertable = false, updatable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "product_id")
 	private ProductModel productInfo;
 
 	@CreationTimestamp

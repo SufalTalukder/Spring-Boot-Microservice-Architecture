@@ -30,21 +30,20 @@ public class ProductAddToFavouriteServiceImpl implements ProductAddToFavouriteSe
 	private ProductRepository productRepository;
 
 	@Override
-	public ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(
+	public ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(long userId, long productId,
 			ProductAddToFavouriteModel productAddToFavouriteModel) {
 
-		Optional<UserModel> user = userRepository.findByUserId(productAddToFavouriteModel.getUserId());
+		Optional<UserModel> user = userRepository.findByUserId(userId);
 		if (user.isEmpty()) {
 			return new ApiResponse<>("not found", "User not found.", null);
 		}
 
-		Optional<ProductModel> product = productRepository.findByProductId(productAddToFavouriteModel.getProductId());
+		Optional<ProductModel> product = productRepository.findByProductId(productId);
 		if (product.isEmpty()) {
 			return new ApiResponse<>("not found", "Product not found.", null);
 		}
 
-		long favouritesCount = productAddToFavouriteRepository.findCustomerByProductId(
-				productAddToFavouriteModel.getProductId(), productAddToFavouriteModel.getUserId());
+		long favouritesCount = productAddToFavouriteRepository.findCustomerByProductId(productId, userId);
 		if (favouritesCount > 0) {
 			return new ApiResponse<>("exist", "Product already added into favourite list!", null);
 		}
@@ -91,7 +90,7 @@ public class ProductAddToFavouriteServiceImpl implements ProductAddToFavouriteSe
 			return new ApiResponse<>("not found", "User not found.", null);
 		}
 
-		if (favourite.get().getUserId() != userId) {
+		if (favourite.get().getUserInfo().getUserId() != userId) {
 			return new ApiResponse<>("not applicable", "This user doesn't own this favourite ID.", null);
 		}
 

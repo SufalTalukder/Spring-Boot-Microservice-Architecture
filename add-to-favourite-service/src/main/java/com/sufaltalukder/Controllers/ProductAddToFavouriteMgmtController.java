@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.ProductAddToFavouriteDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
-import com.sufaltalukder.Models.ProductAddToFavouriteModel;
 import com.sufaltalukder.Services.ProductAddToFavouriteMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -24,14 +22,16 @@ public class ProductAddToFavouriteMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/create-user-add-to-favourite")
-	public ResponseEntity<ApiResponse<ProductAddToFavouriteDTO>> createUserFavourite(@RequestHeader String authToken,
-			@RequestBody ProductAddToFavouriteModel productAddToFavouriteModel) {
+	public ResponseEntity<ApiResponse<ProductAddToFavouriteDTO>> createUserFavourite(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
+			@RequestParam long productId) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
-			productAddToFavouriteModel.setAuthUserId(authUserId);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<ProductAddToFavouriteDTO> response = productAddToFavouriteMgmtService
-					.createUserFavourite(productAddToFavouriteModel);
+					.createUserFavourite(authUserId, userId, productId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -39,6 +39,7 @@ public class ProductAddToFavouriteMgmtController {
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
 			}
+
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
@@ -48,33 +49,38 @@ public class ProductAddToFavouriteMgmtController {
 	}
 
 	@GetMapping("/get-all-user-favourites")
-	public ResponseEntity<PaginationApiResponse<List<ProductAddToFavouriteDTO>>> getUserFavourites(
-			@RequestHeader("authToken") String authToken, @RequestParam long userId,
-			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize,
-			@RequestParam(defaultValue = "addToFavouriteId") String sortBy,
-			@RequestParam(defaultValue = "asc") String sortDir) {
+	public ResponseEntity<ApiResponse<List<ProductAddToFavouriteDTO>>> getUserFavourites(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			PaginationApiResponse<List<ProductAddToFavouriteDTO>> response = productAddToFavouriteMgmtService
-					.getUserFavourites(userId, pageNo, pageSize, sortBy, sortDir);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<List<ProductAddToFavouriteDTO>> response = productAddToFavouriteMgmtService.getUserFavourites();
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 			}
+
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
 
 	@DeleteMapping("/remove-user-favourite")
-	public ResponseEntity<ApiResponse<Void>> removeUserFavourite(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<Void>> removeUserFavourite(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam long addToFavouriteId, @RequestParam long userId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			ApiResponse<Void> response = productAddToFavouriteMgmtService.removeUserFavourite(addToFavouriteId, userId);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<Void> response = productAddToFavouriteMgmtService.removeUserFavourite(authUserId,
+					addToFavouriteId, userId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -82,6 +88,7 @@ public class ProductAddToFavouriteMgmtController {
 			if ("not applicable".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
 			}
+
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
