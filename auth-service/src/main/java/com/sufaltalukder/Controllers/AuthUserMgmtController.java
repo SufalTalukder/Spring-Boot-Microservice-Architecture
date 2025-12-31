@@ -160,8 +160,6 @@ public class AuthUserMgmtController {
 		try {
 			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			authUserInfo.setActionByUserId(authUserId);
-
 			ApiResponse<AuthUserDTO> response = authUserMgmtService.updateAuthUser(authUserId, authUserInfo);
 
 			if ("not found".equals(response.getStatus())) {

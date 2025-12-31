@@ -3,6 +3,9 @@ package com.sufaltalukder.Models;
 import java.time.ZonedDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,8 +15,13 @@ import lombok.Data;
 public class AuthUserModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long authUserId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "action_by_user_id")
+	@JsonBackReference
+	private AuthUserModel actionByUserInfo;
 
 	@Column(name = "auth_user_name", nullable = false)
 	private String authUserName;
@@ -29,9 +37,6 @@ public class AuthUserModel {
 
 	@Column(name = "auth_user_image")
 	private String authUserImage;
-
-	@Column(name = "action_by_user_id")
-	private long actionByUserId;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "auth_user_status", nullable = false)

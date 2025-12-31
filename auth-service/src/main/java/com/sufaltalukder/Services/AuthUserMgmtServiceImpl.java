@@ -40,7 +40,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword) {
-		
+
 		AuthUserModel user = authUserRepository.findByAuthUserEmailAddress(authUserEmailAddress);
 
 		if (user == null) {
@@ -67,7 +67,10 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo) {
-		
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
 		String rawPassword = authUserInfo.getAuthUserPassword();
 
 		if (rawPassword == null || rawPassword.isEmpty()) {
@@ -83,7 +86,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		// Base64 encode the password before storing
 		String encodedPassword = Base64.getEncoder().encodeToString(rawPassword.getBytes());
 		authUserInfo.setAuthUserPassword(encodedPassword);
-		authUserInfo.setActionByUserId(1);
+		authUserInfo.setActionByUserInfo(authUser);
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -99,7 +102,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<String> uploadImage(long authUserId, MultipartFile file) {
-		
+
 		Optional<AuthUserModel> isUserExits = authUserRepository.findById(authUserId);
 
 		if (isUserExits.isPresent()) {
@@ -145,21 +148,21 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<List<AuthUserDTO>> getAllAuthUsers() {
-		
-		List<AuthUserModel> fetchAllAuthUsers = authUserRepository.findAll();
+
+		List<AuthUserModel> fetchAllAuthUsers = authUserRepository.findAllAuthUsers();
 
 		if (fetchAllAuthUsers.isEmpty()) {
 			return new ApiResponse<>("not found", "No auth user(s) found.", null);
 		}
 
 		List<AuthUserDTO> dtos = fetchAllAuthUsers.stream().map(AuthUserMapper::toDTO).toList();
-		
+
 		return new ApiResponse<>("success", "All auth users fetched successfully.", dtos);
 	}
 
 	@Override
 	public ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId) {
-		
+
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -172,7 +175,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> getAuthUser(long authUserId) {
-		
+
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -185,11 +188,14 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo) {
+
+		Optional<AuthUserModel> fetchAuthUser = authUserRepository
+				.findById(authUserInfo.getActionByUserInfo().getAuthUserId());
 		
-		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserInfo.getActionByUserId());
 		if (fetchAuthUser.isEmpty()) {
 			return new ApiResponse<>("not found", "Auth user not found.", null);
 		}
+		
 		AuthUserModel fetchedAuthUser = fetchAuthUser.get();
 
 		// Update only the fields that are being modified
@@ -214,7 +220,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId) {
-		
+
 		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(rqstAuthUserId);
 
 		if (fetchAuthUser.isEmpty()) {
@@ -235,7 +241,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Override
 	public ApiResponse<Void> deleteAllAuthUsers(long authUserId, List<Long> rqstAuthUserIds) {
-		
+
 		for (Long rqstAuthUserId : rqstAuthUserIds) {
 			if (!authUserRepository.existsById(rqstAuthUserId)) {
 				return new ApiResponse<>("not found", "Some auth users were not found.", null);
