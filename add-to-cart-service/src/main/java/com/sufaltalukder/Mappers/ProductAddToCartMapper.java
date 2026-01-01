@@ -15,9 +15,9 @@ public class ProductAddToCartMapper {
 
 		ProductAddToCartDTO dto = new ProductAddToCartDTO();
 		dto.setAddToCartId(model.getAddToCartId());
-		dto.setAuthUserId(model.getAuthUserId());
-		dto.setUserId(model.getUserId());
-		dto.setProductId(model.getProductId());
+		dto.setAuthUserInfo(model.getAuthUserInfo());
+		dto.setUserInfo(model.getUserInfo());
+		dto.setProductInfo(model.getProductInfo());
 		dto.setQuantity(model.getQuantity());
 		dto.setEachProductTotalPrice(model.getEachProductTotalPrice());
 		dto.setCartCreatedAt(model.getCartCreatedAt());
@@ -41,9 +41,9 @@ public class ProductAddToCartMapper {
 
 		ProductAddToCartModel model = new ProductAddToCartModel();
 		model.setAddToCartId(dto.getAddToCartId());
-		model.setAuthUserId(dto.getAuthUserId());
-		model.setUserId(dto.getUserId());
-		model.setProductId(dto.getProductId());
+		model.setAuthUserInfo(dto.getAuthUserInfo());
+		model.setUserInfo(dto.getUserInfo());
+		model.setProductInfo(dto.getProductInfo());
 		model.setQuantity(dto.getQuantity());
 		model.setEachProductTotalPrice(dto.getEachProductTotalPrice());
 		model.setCartCreatedAt(dto.getCartCreatedAt());

@@ -32,20 +32,21 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 	private UserRepository userRepository;
 
 	@Override
-	public ApiResponse<ProductAddToCartDTO> createUserCart(ProductAddToCartModel productAddToCartModel) {
+	public ApiResponse<ProductAddToCartDTO> createUserCart(long userId, ProductAddToCartModel productAddToCartModel) {
 
-		Optional<UserModel> user = userRepository.findByUserId(productAddToCartModel.getUserId());
+		Optional<UserModel> user = userRepository.findByUserId(userId);
 		if (user.isEmpty()) {
 			return new ApiResponse<>("not found", "User not found.", null);
 		}
 
-		Optional<ProductModel> product = productRepository.findByProductId(productAddToCartModel.getProductId());
+		Optional<ProductModel> product = productRepository
+				.findByProductId(productAddToCartModel.getProductInfo().getProductId());
 		if (product.isEmpty()) {
 			return new ApiResponse<>("not found", "Product not found.", null);
 		}
 
-		long cartsCount = productAddToCartRepository.findUserByProductId(productAddToCartModel.getProductId(),
-				productAddToCartModel.getUserId());
+		long cartsCount = productAddToCartRepository
+				.findUserByProductId(productAddToCartModel.getProductInfo().getProductId(), userId);
 		if (cartsCount > 0) {
 			return new ApiResponse<>("exist", "Product already added into cart list!", null);
 		}
@@ -74,7 +75,7 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 
 		Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
 
-		Page<ProductAddToCartModel> filteredCarts = productAddToCartRepository.findByUserId(userId, pageable);
+		Page<ProductAddToCartModel> filteredCarts = productAddToCartRepository.findUserByUserId(userId, pageable);
 
 		if (filteredCarts.isEmpty()) {
 			return new PaginationApiResponse<>("not found", "No cart(s) list found for user ID: " + userId, null, 0, 0,
@@ -96,7 +97,7 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 
 		for (ProductAddToCartModel updateModel : cartUpdateModels) {
 			long cartId = updateModel.getAddToCartId();
-			long productId = updateModel.getProductId();
+			long productId = updateModel.getProductInfo().getProductId();
 
 			Optional<ProductAddToCartModel> optionalCart = productAddToCartRepository.findById(cartId);
 
@@ -107,13 +108,13 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 			ProductAddToCartModel existingCart = optionalCart.get();
 
 			// Validate userId match
-			if (existingCart.getUserId() != userId) {
+			if (existingCart.getUserInfo().getUserId() != userId) {
 				return new CartApiResponse<>("not found",
 						"Cart ID: " + cartId + " does not belong to user ID: " + userId, null, 0);
 			}
 
 			// Validate productId match
-			if (existingCart.getProductId() != productId) {
+			if (existingCart.getProductInfo().getAuthUserId() != productId) {
 				return new CartApiResponse<>("not found",
 						"Product ID: " + productId + " not found in user's cart (Cart ID: " + cartId + ")", null, 0);
 			}
@@ -148,12 +149,12 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 			return new ApiResponse<>("not found", "Cart ID not found.", null);
 		}
 
-		Optional<UserModel> user = userRepository.findByUserId(userId);
+		Optional<UserModel> user = userRepository.findById(userId);
 		if (user.isEmpty()) {
 			return new ApiResponse<>("not found", "User not found.", null);
 		}
 
-		if (cart.get().getUserId() != userId) {
+		if (cart.get().getUserInfo().getUserId() != userId) {
 			return new ApiResponse<>("not applicable", "This user doesn't own this cart ID.", null);
 		}
 
@@ -174,7 +175,7 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 
 			if (optionalCart.isPresent()) {
 				ProductAddToCartModel cart = optionalCart.get();
-				if (cart.getUserId() == userId) {
+				if (cart.getUserInfo().getUserId() == userId) {
 					productAddToCartRepository.deleteById(eachId);
 				} else {
 					notFoundCartIds.add(eachId);

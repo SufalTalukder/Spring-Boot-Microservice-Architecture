@@ -29,9 +29,9 @@ public class ProductAddToCartController {
 			@RequestBody ProductAddToCartModel productAddToCartModel) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
-			productAddToCartModel.setUserId(userId);
 
-			ApiResponse<ProductAddToCartDTO> response = productAddToCartService.createUserCart(productAddToCartModel);
+			ApiResponse<ProductAddToCartDTO> response = productAddToCartService.createUserCart(userId,
+					productAddToCartModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

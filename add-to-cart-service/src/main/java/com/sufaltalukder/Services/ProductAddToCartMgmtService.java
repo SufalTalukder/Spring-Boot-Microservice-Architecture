@@ -1,27 +1,17 @@
 package com.sufaltalukder.Services;
 
-import java.util.List;
+import java.util.*;
 
 import com.sufaltalukder.DTOs.ProductAddToCartDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.CartApiResponse;
-import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Models.ProductAddToCartModel;
 
 public interface ProductAddToCartMgmtService {
 
-	ApiResponse<ProductAddToCartDTO> createUserCart(ProductAddToCartModel productAddToCartModel);
+	ApiResponse<List<ProductAddToCartDTO>> getAllCarts(long authUserId, long userId);
+
+	ApiResponse<Void> removeUserCart(long authUserId, long addToCartId, long userId);
 
 	ApiResponse<ProductAddToCartModel> getUserCart(long addToCartId, long userId);
-
-	PaginationApiResponse<List<ProductAddToCartDTO>> getUserCarts(long userId, int pageNo, int pageSize, String sortBy,
-			String sortDir);
-
-	CartApiResponse<List<ProductAddToCartDTO>> updateUserMultiCarts(List<ProductAddToCartModel> cartUpdateModels,
-			long userId);
-
-	ApiResponse<Void> removeUserCart(long addToCartId, long userId);
-
-	ApiResponse<Void> removeUserAllCarts(String addToCartIds, long userId);
 
 }

@@ -10,7 +10,7 @@ import com.sufaltalukder.Models.ProductAddToCartModel;
 
 public interface ProductAddToCartService {
 
-	ApiResponse<ProductAddToCartDTO> createUserCart(ProductAddToCartModel productAddToCartModel);
+	ApiResponse<ProductAddToCartDTO> createUserCart(long userId, ProductAddToCartModel productAddToCartModel);
 
 	PaginationApiResponse<List<ProductAddToCartDTO>> getUserCarts(long userId, int pageNo, int pageSize, String sortBy,
 			String sortDir);
