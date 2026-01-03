@@ -14,12 +14,12 @@ import com.sufaltalukder.Models.ProductAddToCartModel;
 public interface ProductAddToCartRepository extends JpaRepository<ProductAddToCartModel, Long> {
 
 	@Query("""
-				SELECT COUNT(cart)
-				FROM ProductAddToCartModel cart
-				WHERE cart.productInfo.productId = :productId
-				AND cart.userInfo.userId = :userId
+			    SELECT COUNT(cart)
+			    FROM ProductAddToCartModel cart
+			    WHERE cart.userInfo.userId = :userId
+			      AND cart.productInfo.productId = :productId
 			""")
-	long findUserByProductId(@Param("productId") long productId, @Param("userId") long userId);
+	long existsByUserIdAndProductId(@Param("userId") long userId, @Param("productId") long productId);
 
 	@Query("""
 				SELECT cart

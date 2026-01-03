@@ -31,11 +31,11 @@ public class NewsletterController {
 	@PatchMapping("/update-newsletter-subscription")
 	public ResponseEntity<ApiResponse<NewsletterDTO>> updateNewsletterToggle(
 			@RequestHeader("authToken") String authToken, @RequestBody NewsletterModel newsletterModel) {
+
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
-			newsletterModel.setUserId(userId);
 
-			ApiResponse<NewsletterDTO> response = newsletterService.updateNewsletterToggle(newsletterModel);
+			ApiResponse<NewsletterDTO> response = newsletterService.updateNewsletterToggle(userId, newsletterModel);
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {

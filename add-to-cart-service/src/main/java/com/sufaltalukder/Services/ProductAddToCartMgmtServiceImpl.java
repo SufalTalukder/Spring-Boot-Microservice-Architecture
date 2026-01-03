@@ -9,10 +9,14 @@ import com.sufaltalukder.DTOs.ProductAddToCartDTO;
 import com.sufaltalukder.Mappers.ProductAddToCartMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
+import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.ProductAddToCartModel;
+import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
+import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.ProductAddToCartRepository;
+import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
@@ -26,7 +30,51 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 	private UserRepository userRepository;
 
 	@Autowired
+	private ProductRepository productRepository;
+
+	@Autowired
+	private AuthUserRepository authUserRepository;
+
+	@Autowired
 	private ActionLogFeignService actionLogFeignService; // Via feign client
+
+	@Override
+	public ApiResponse<ProductAddToCartDTO> addUserCart(long authUserId, long userId, long productId,
+			ProductAddToCartModel productAddToCartModel) {
+
+		long cartCount = productAddToCartRepository.existsByUserIdAndProductId(userId, productId);
+
+		if (cartCount > 0) {
+			return new ApiResponse<>("exist", "Product already exists for this user.", null);
+		}
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
+		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+		ProductModel product = productRepository.findById(productId)
+				.orElseThrow(() -> new RuntimeException("Product not found"));
+
+		ProductAddToCartModel savingData = new ProductAddToCartModel();
+		savingData.setAuthUserInfo(authUser);
+		savingData.setUserInfo(user);
+		savingData.setProductInfo(product);
+		savingData.setQuantity(productAddToCartModel.getQuantity());
+		savingData.setEachProductTotalPrice(productAddToCartModel.getEachProductTotalPrice());
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Cart added successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		ProductAddToCartModel savedData = productAddToCartRepository.save(savingData);
+
+		return new ApiResponse<>("success", "Cart added successfully.", ProductAddToCartMapper.toDTO(savedData));
+	}
 
 	@Override
 	public ApiResponse<List<ProductAddToCartDTO>> getAllCarts(long authUserId, long userId) {
@@ -57,6 +105,11 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 		List<ProductAddToCartDTO> dtos = carts.stream().map(ProductAddToCartMapper::toDTO).toList();
 
 		return new ApiResponse<>("success", "Cart(s) fetched successfully.", dtos);
+	}
+
+	@Override
+	public Double getPriceOfSelectedProduct(long productId) {
+		return productRepository.findProductPriceByProductId(productId);
 	}
 
 	@Override

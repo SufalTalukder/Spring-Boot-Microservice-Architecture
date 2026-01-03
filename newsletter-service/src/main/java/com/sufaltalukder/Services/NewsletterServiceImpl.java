@@ -7,7 +7,9 @@ import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.Mappers.NewsletterMapper;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.NewsletterModel;
+import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Repositories.NewsletterRepository;
+import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.UserFeignService;
 
 @Service
@@ -15,6 +17,9 @@ public class NewsletterServiceImpl implements NewsletterService {
 
 	@Autowired
 	private NewsletterRepository newsletterRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Autowired
 	private UserFeignService userFeignService; // feign service
@@ -29,14 +34,17 @@ public class NewsletterServiceImpl implements NewsletterService {
 	}
 
 	@Override
-	public ApiResponse<NewsletterDTO> updateNewsletterToggle(NewsletterModel newsletterModel) {
-		NewsletterModel existingNewsletter = newsletterRepository.findByUserId(newsletterModel.getUserId());
+	public ApiResponse<NewsletterDTO> updateNewsletterToggle(long userId, NewsletterModel newsletterModel) {
+
+		NewsletterModel existingNewsletter = newsletterRepository.findById(userId).orElse(null);
 
 		NewsletterModel savedNewsletter;
 
+		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
 		if (existingNewsletter == null) {
 			NewsletterModel newSubscriber = new NewsletterModel();
-			newSubscriber.setUserId(newsletterModel.getUserId());
+			newSubscriber.setUserInfo(user);
 			newSubscriber.setNewsletterToggle(newsletterModel.getNewsletterToggle());
 			savedNewsletter = newsletterRepository.save(newSubscriber);
 

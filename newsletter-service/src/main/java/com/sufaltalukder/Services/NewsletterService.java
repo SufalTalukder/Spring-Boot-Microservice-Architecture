@@ -8,6 +8,6 @@ public interface NewsletterService {
 
 	ApiResponse<NewsletterDTO> getNewsletterToggle(long userId);
 
-	ApiResponse<NewsletterDTO> updateNewsletterToggle(NewsletterModel newsletterModel);
+	ApiResponse<NewsletterDTO> updateNewsletterToggle(long userId, NewsletterModel newsletterModel);
 
 }

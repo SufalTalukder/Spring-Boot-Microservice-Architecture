@@ -46,7 +46,7 @@ public class ProductAddToCartServiceImpl implements ProductAddToCartService {
 		}
 
 		long cartsCount = productAddToCartRepository
-				.findUserByProductId(productAddToCartModel.getProductInfo().getProductId(), userId);
+				.existsByUserIdAndProductId(productAddToCartModel.getProductInfo().getProductId(), userId);
 		if (cartsCount > 0) {
 			return new ApiResponse<>("exist", "Product already added into cart list!", null);
 		}

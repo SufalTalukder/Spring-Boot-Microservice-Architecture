@@ -17,19 +17,16 @@ public class NewsletterModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long newsletterId;
 
-	@Column(name = "user_id")
-	private long userId;
+	@ManyToOne
+	@JoinColumn(name = "auth_user_id")
+	private AuthUserModel authUserInfo;
 
-	@Column(name = "auth_user_id")
-	private long authUserId;
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private UserModel userInfo;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "newsletter_toggle", nullable = false)
-	private NewsletterToggle newsletterToggle;
-
-	public enum NewsletterToggle {
-		YES, NO
-	}
+	@Column(name = "newsletter_toggle")
+	private String newsletterToggle;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

@@ -5,16 +5,16 @@ import java.util.List;
 import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.NewsletterModel;
-import com.sufaltalukder.Models.PaginationApiResponse;
 
 public interface NewsletterMgmtService {
 
-	ApiResponse<NewsletterDTO> createNewsletterToggle(NewsletterModel newsletterModel);
+	ApiResponse<NewsletterDTO> createNewsletterToggle(long authUserId, long userId, NewsletterModel newsletterModel);
 
-	ApiResponse<NewsletterDTO> getNewsletterToggle(long newsletterId);
+	ApiResponse<NewsletterDTO> getNewsletterToggle(long authUserId, long newsletterId);
 
-	PaginationApiResponse<List<NewsletterDTO>> getAllNewsletterToggle(int pageNo, int pageSize);
+	ApiResponse<List<NewsletterDTO>> getAllNewsletterToggle();
 
-	ApiResponse<NewsletterDTO> updateNewsletterToggle(long newsletterId, NewsletterModel newsletterModel);
+	ApiResponse<NewsletterDTO> updateNewsletterToggle(long newsletterId, long authUserId, long userId,
+			String newsletterToggle);
 
 }

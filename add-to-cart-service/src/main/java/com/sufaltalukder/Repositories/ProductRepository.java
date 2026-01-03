@@ -26,8 +26,12 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
 			""")
 	List<ProductModel> findSearchedResultsByQuery(@Param("q") String q);
 
-	@Query(value = "SELECT product_tbl.product_price FROM product_tbl WHERE product_tbl.product_id = :productId", nativeQuery = true)
-	Long findProductPriceByProductId(@Param("productId") long productId);
+	@Query(value = """
+			    SELECT p.product_price
+			    FROM product_tbl p
+			    WHERE p.product_id = :productId
+			""", nativeQuery = true)
+	Double findProductPriceByProductId(@Param("productId") long productId);
 
 	ProductModel findByProductName(String productName);
 

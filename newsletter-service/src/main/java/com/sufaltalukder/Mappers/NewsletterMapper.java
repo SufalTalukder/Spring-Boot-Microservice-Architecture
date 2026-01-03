@@ -10,7 +10,7 @@ public class NewsletterMapper {
 			return null;
 		}
 
-		return new NewsletterDTO(entity.getNewsletterId(), entity.getUserId(), entity.getAuthUserId(),
+		return new NewsletterDTO(entity.getNewsletterId(), entity.getAuthUserInfo(), entity.getUserInfo(),
 				entity.getNewsletterToggle(), entity.getNewsletterCreatedAt(), entity.getNewsletterUpdatedAt());
 	}
 
@@ -21,8 +21,8 @@ public class NewsletterMapper {
 
 		NewsletterModel entity = new NewsletterModel();
 		entity.setNewsletterId(dto.getNewsletterId());
-		entity.setUserId(dto.getUserId());
-		entity.setAuthUserId(dto.getAuthUserId());
+		entity.setAuthUserInfo(dto.getAuthUserInfo());
+		entity.setUserInfo(dto.getUserInfo());
 		entity.setNewsletterToggle(dto.getNewsletterToggle());
 
 		return entity;

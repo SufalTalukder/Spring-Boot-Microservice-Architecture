@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import com.sufaltalukder.DTOs.NewsletterDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.NewsletterModel;
-import com.sufaltalukder.Models.PaginationApiResponse;
 import com.sufaltalukder.Services.NewsletterMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -24,74 +23,90 @@ public class NewsletterMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/create-newsletter")
-	public ResponseEntity<ApiResponse<NewsletterDTO>> createNewsletterToggle(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<NewsletterDTO>> createNewsletterToggle(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
 			@RequestBody NewsletterModel newsletterModel) {
+
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
-			newsletterModel.setAuthUserId(authUserId);
-			ApiResponse<NewsletterDTO> response = newsletterMgmtService.createNewsletterToggle(newsletterModel);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			if ("not found".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-			}
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new ApiResponse<>("error", "Unauthorized access.", null));
-		}
-	}
-
-	@GetMapping("/get-newsletter")
-	public ResponseEntity<ApiResponse<NewsletterDTO>> getNewsletterToggle(@RequestHeader String authToken,
-			@RequestParam long newsletterId) {
-		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			ApiResponse<NewsletterDTO> response = newsletterMgmtService.getNewsletterToggle(newsletterId);
-
-			if ("not found".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-			}
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new ApiResponse<>("error", "Unauthorized access.", null));
-		}
-	}
-
-	@GetMapping("/get-all-newsletter")
-	public ResponseEntity<PaginationApiResponse<List<NewsletterDTO>>> getAllNewsletterToggle(
-			@RequestHeader String authToken, @RequestParam(defaultValue = "1") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
-		try {
-			authJwtUtil.extractAuthUserId(authToken);
-			PaginationApiResponse<List<NewsletterDTO>> response = newsletterMgmtService.getAllNewsletterToggle(pageNo,
-					pageSize);
-
-			if ("not found".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-			}
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new PaginationApiResponse<>("error", "Unauthorized access.", null, 0, 0, 0));
-		}
-	}
-
-	@PatchMapping("/update-newsletter-details")
-	public ResponseEntity<ApiResponse<NewsletterDTO>> updateNewsletterToggle(@RequestHeader String authToken,
-			@RequestParam long newsletterId, @RequestBody NewsletterModel newsletterModel) {
-		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
-			newsletterModel.setAuthUserId(authUserId);
-			ApiResponse<NewsletterDTO> response = newsletterMgmtService.updateNewsletterToggle(newsletterId,
+			ApiResponse<NewsletterDTO> response = newsletterMgmtService.createNewsletterToggle(authUserId, userId,
 					newsletterModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-newsletter-details")
+	public ResponseEntity<ApiResponse<NewsletterDTO>> getNewsletterToggle(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long newsletterId) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<NewsletterDTO> response = newsletterMgmtService.getNewsletterToggle(authUserId, newsletterId);
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-all-newsletters")
+	public ResponseEntity<ApiResponse<List<NewsletterDTO>>> getAllNewsletterToggle(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
+
+		try {
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<List<NewsletterDTO>> response = newsletterMgmtService.getAllNewsletterToggle();
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@PatchMapping("/update-newsletter-details")
+	public ResponseEntity<ApiResponse<NewsletterDTO>> updateNewsletterToggle(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long newsletterId,
+			@RequestParam long userId, @RequestParam String newsletterToggle) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<NewsletterDTO> response = newsletterMgmtService.updateNewsletterToggle(newsletterId, authUserId,
+					userId, newsletterToggle);
+
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
