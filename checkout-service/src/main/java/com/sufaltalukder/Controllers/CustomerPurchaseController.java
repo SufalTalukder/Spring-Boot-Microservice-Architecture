@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.sufaltalukder.DTOs.CheckOutHistoryDTO;
+import com.sufaltalukder.DTOs.CheckOutDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CheckOutHistoryModel;
 import com.sufaltalukder.Models.NotificationModel;
@@ -36,13 +36,14 @@ public class CustomerPurchaseController {
 	private static final Logger logger = LoggerFactory.getLogger(CustomerPurchaseController.class);
 
 	@PostMapping("/checkout-history")
-	public ResponseEntity<ApiResponse<CheckOutHistoryDTO>> createUserCheckOut(
+	public ResponseEntity<ApiResponse<CheckOutDTO>> createUserCheckOut(
 			@RequestHeader("authToken") String authToken, @RequestBody CheckOutHistoryModel checkOutHistoryModel) {
+
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
-			checkOutHistoryModel.setUserId(userId);
 
-			ApiResponse<CheckOutHistoryDTO> response = customerPurchaseService.createUserCheckOut(checkOutHistoryModel);
+			ApiResponse<CheckOutDTO> response = customerPurchaseService.createUserCheckOut(userId,
+					checkOutHistoryModel);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -66,7 +67,7 @@ public class CustomerPurchaseController {
 
 				// call addToCart micro-service via feign client
 				addToCartFeignService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(),
-						checkOutHistoryModel.getUserId());
+						checkOutHistoryModel.getUserInfo().getUserId());
 			}
 
 			return ResponseEntity.ok(response);
@@ -78,12 +79,12 @@ public class CustomerPurchaseController {
 	}
 
 	@GetMapping("/get-purchase-details")
-	public ResponseEntity<ApiResponse<CheckOutHistoryDTO>> getPurchaseDetails(
+	public ResponseEntity<ApiResponse<CheckOutDTO>> getPurchaseDetails(
 			@RequestHeader("authToken") String authToken, @RequestParam long checkOutHistoryId) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
 
-			ApiResponse<CheckOutHistoryDTO> response = customerPurchaseService.getPurchaseDetails(userId,
+			ApiResponse<CheckOutDTO> response = customerPurchaseService.getPurchaseDetails(userId,
 					checkOutHistoryId);
 
 			if (!"success".equals(response.getStatus())) {
@@ -98,7 +99,7 @@ public class CustomerPurchaseController {
 	}
 
 	@GetMapping("/get-all-purchases")
-	public ResponseEntity<PaginationApiResponse<List<CheckOutHistoryDTO>>> getAllPurchasesList(
+	public ResponseEntity<PaginationApiResponse<List<CheckOutDTO>>> getAllPurchasesList(
 			@RequestHeader("authToken") String authToken, @RequestParam(defaultValue = "1") int pageNo,
 			@RequestParam(defaultValue = "10") int pageSize,
 			@RequestParam(defaultValue = "checkOutHistoryId") String sortBy,
@@ -106,7 +107,7 @@ public class CustomerPurchaseController {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
 
-			PaginationApiResponse<List<CheckOutHistoryDTO>> response = customerPurchaseService
+			PaginationApiResponse<List<CheckOutDTO>> response = customerPurchaseService
 					.getAllPurchasesList(userId, pageNo, pageSize, sortBy, sortDir);
 
 			if (!"success".equals(response.getStatus())) {
@@ -121,12 +122,12 @@ public class CustomerPurchaseController {
 	}
 
 	@PatchMapping("/cancel-purchase")
-	public ResponseEntity<ApiResponse<CheckOutHistoryDTO>> cancelPurchase(@RequestHeader("authToken") String authToken,
+	public ResponseEntity<ApiResponse<CheckOutDTO>> cancelPurchase(@RequestHeader("authToken") String authToken,
 			@RequestParam long checkOutHistoryId) {
 		try {
 			long userId = jwtUtil.extractUserId(authToken);
 
-			ApiResponse<CheckOutHistoryDTO> response = customerPurchaseService.cancelPurchase(userId,
+			ApiResponse<CheckOutDTO> response = customerPurchaseService.cancelPurchase(userId,
 					checkOutHistoryId);
 
 			if (!"success".equals(response.getStatus())) {

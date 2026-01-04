@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import com.sufaltalukder.DTOs.CheckOutHistoryDTO;
+import com.sufaltalukder.DTOs.CheckOutDTO;
 import com.sufaltalukder.Mappers.CheckOutHistoryMapper;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.CheckOutHistoryModel;
@@ -40,15 +40,12 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 	private ProductAddToCartRepository productAddToCartRepository;
 
 	@Override
-	public ApiResponse<CheckOutHistoryDTO> createUserCheckOut(CheckOutHistoryModel checkOutHistoryModel) {
+	public ApiResponse<CheckOutDTO> createUserCheckOut(long userId, CheckOutHistoryModel checkOutHistoryModel) {
 
-		UserModel user = userRepository.findById(checkOutHistoryModel.getUserId()).orElse(null);
-		if (user == null) {
-			return new ApiResponse<>("not found", "User ID not found.", null);
-		}
+		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-		System.out.println("User ID: " + checkOutHistoryModel.getUserId());
-		
+		// System.out.println("User ID: " + userId);
+
 		double totalPaymentAmount = 0;
 		StringBuilder cartIdsBuilder = new StringBuilder();
 		StringBuilder productIdsBuilder = new StringBuilder();
@@ -61,8 +58,7 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 			long eachCartId = Long.parseLong(cartIdStr.trim());
 
 			// call addToCart feign
-			ApiResponse<ProductAddToCartModel> apiResponse = addToCartFeignService.getUserCart(eachCartId,
-					checkOutHistoryModel.getUserId());
+			ApiResponse<ProductAddToCartModel> apiResponse = addToCartFeignService.getUserCart(eachCartId, userId);
 
 			if (apiResponse == null || !"success".equals(apiResponse.getStatus())) {
 				return new ApiResponse<>("not found",
@@ -90,8 +86,8 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 
 		CheckOutHistoryModel addData = new CheckOutHistoryModel();
 
-		addData.setAuthUserId(checkOutHistoryModel.getAuthUserId());
-		addData.setUserId(user.getUserId());
+		addData.setAuthUserInfo(null);
+		addData.setUserInfo(user);
 		addData.setAddToCartIds(cartIds);
 		addData.setProductIds(productIds);
 
@@ -112,11 +108,11 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 
 		CheckOutHistoryModel saved = checkOutHistoryRepository.save(addData);
 
-		return new ApiResponse<>("success", "Order checkout successfully.", CheckOutHistoryMapper.toDTO(saved));
+		return new ApiResponse<>("success", "Order checkout successfully.", CheckOutHistoryMapper.toDto(saved));
 	}
 
 	@Override
-	public ApiResponse<CheckOutHistoryDTO> getPurchaseDetails(long userId, long checkOutHistoryId) {
+	public ApiResponse<CheckOutDTO> getPurchaseDetails(long userId, long checkOutHistoryId) {
 
 		CheckOutHistoryModel data = checkOutHistoryRepository.findByCheckOutHistoryIdAndUserId(checkOutHistoryId,
 				userId);
@@ -126,30 +122,30 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 					"Order history ID: " + checkOutHistoryId + " not found for User ID: " + userId, null);
 		}
 
-		return new ApiResponse<>("success", "Order details fetched successfully.", CheckOutHistoryMapper.toDTO(data));
+		return new ApiResponse<>("success", "Order details fetched successfully.", CheckOutHistoryMapper.toDto(data));
 	}
 
 	@Override
-	public PaginationApiResponse<List<CheckOutHistoryDTO>> getAllPurchasesList(long userId, int pageNo, int pageSize,
+	public PaginationApiResponse<List<CheckOutDTO>> getAllPurchasesList(long userId, int pageNo, int pageSize,
 			String sortBy, String sortDir) {
 
 		Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 		Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
 
-		Page<CheckOutHistoryModel> page = checkOutHistoryRepository.findByUserId(userId, pageable);
+		Page<CheckOutHistoryModel> page = checkOutHistoryRepository.findCheckoutHistoriesOfUser(userId, pageable);
 
 		if (page.isEmpty()) {
 			return new PaginationApiResponse<>("not found", "No order(s) found for user ID: " + userId, null, 0, 0, 0);
 		}
 
-		List<CheckOutHistoryDTO> dtos = page.stream().map(CheckOutHistoryMapper::toDTO).toList();
+		List<CheckOutDTO> dtos = page.stream().map(CheckOutHistoryMapper::toDto).toList();
 
 		return new PaginationApiResponse<>("success", "Order list fetched.", dtos, page.getNumber() + 1,
 				page.getTotalPages(), page.getTotalElements());
 	}
 
 	@Override
-	public ApiResponse<CheckOutHistoryDTO> cancelPurchase(long userId, long checkOutHistoryId) {
+	public ApiResponse<CheckOutDTO> cancelPurchase(long userId, long checkOutHistoryId) {
 
 		CheckOutHistoryModel data = checkOutHistoryRepository.findByCheckOutHistoryIdAndUserId(checkOutHistoryId,
 				userId);
@@ -165,6 +161,6 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 
 		CheckOutHistoryModel saved = checkOutHistoryRepository.save(data);
 
-		return new ApiResponse<>("success", "Order cancelled successfully.", CheckOutHistoryMapper.toDTO(saved));
+		return new ApiResponse<>("success", "Order cancelled successfully.", CheckOutHistoryMapper.toDto(saved));
 	}
 }

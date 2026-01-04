@@ -17,14 +17,12 @@ public class CheckOutHistoryModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long checkOutHistoryId;
 
-	@Column(name = "auth_user_id")
-	private long authUserId;
+	@ManyToOne
+	@JoinColumn(name = "auth_user_id")
+	private AuthUserModel authUserInfo;
 
-	@Column(name = "user_id")
-	private long userId;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", insertable = false, updatable = false)
+	@ManyToOne
+	@JoinColumn(name = "user_id")
 	private UserModel userInfo;
 
 	@Column(name = "add_to_cart_ids", nullable = false)

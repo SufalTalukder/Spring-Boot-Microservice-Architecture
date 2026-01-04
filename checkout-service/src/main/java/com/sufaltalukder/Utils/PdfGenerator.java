@@ -22,7 +22,7 @@ public class PdfGenerator {
 		for (CheckOutHistoryModel purchase : purchases) {
 			html.append("<tr>");
 			html.append("<td>").append(purchase.getCheckOutHistoryId()).append("</td>");
-			html.append("<td>").append("<span>ID: ").append(purchase.getUserId()).append("</span></br>")
+			html.append("<td>").append("<span>ID: ").append(purchase.getUserInfo().getUserId()).append("</span></br>")
 					.append("<span>Name: ").append(purchase.getUserInfo().getFullName()).append("</span></br>")
 					.append("<span>Email address: ").append(purchase.getUserInfo().getEmailAddress())
 					.append("</span></br>").append("<span>Phone number: ")

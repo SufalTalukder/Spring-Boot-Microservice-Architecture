@@ -14,14 +14,13 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CheckOutHistoryDTO {
+public class CheckOutDTO {
 
 	private long checkOutHistoryId;
 	private AuthUserModel authUserInfo;
 	private UserModel userInfo;
 	private List<String> addToCartIds;
 	private List<String> productIds;
-	private List<ProductDTO> products;
 	private String paymentAddress;
 	private String shippingAddress;
 	private ShippingMethod shippingMethod;
