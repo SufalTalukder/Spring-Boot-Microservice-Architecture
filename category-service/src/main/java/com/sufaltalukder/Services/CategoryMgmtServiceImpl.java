@@ -1,6 +1,5 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +44,6 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 		saveData.setAuthUserInfo(authUser);
 		saveData.setCategoryName(categoryModel.getCategoryName());
 		saveData.setCategoryActive(categoryModel.getCategoryActive());
-		saveData.setCategoryCreatedAt(ZonedDateTime.now());
 
 		CategoryModel savedData = categoryRepository.save(saveData);
 
@@ -121,7 +119,6 @@ public class CategoryMgmtServiceImpl implements CategoryMgmtService {
 		categoryToUpdate.setAuthUserInfo(authUser);
 		categoryToUpdate.setCategoryName(categoryModel.getCategoryName());
 		categoryToUpdate.setCategoryActive(categoryModel.getCategoryActive());
-		categoryToUpdate.setCategoryUpdatedAt(ZonedDateTime.now());
 
 		CategoryModel updatedData = categoryRepository.save(categoryToUpdate);
 

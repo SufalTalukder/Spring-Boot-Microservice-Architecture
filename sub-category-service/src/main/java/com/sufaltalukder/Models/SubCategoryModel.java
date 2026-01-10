@@ -1,16 +1,19 @@
 package com.sufaltalukder.Models;
 
-import java.time.ZonedDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "sub_category_tbl")
+@Table(name = "sub_category_tbl", indexes = { @Index(name = "idx_sub_category_name", columnList = "sub_category_name"),
+		@Index(name = "idx_sub_category_status", columnList = "sub_category_status"),
+		@Index(name = "idx_auth_user_id", columnList = "auth_user_id"),
+		@Index(name = "idx_created_at", columnList = "created_at") })
 public class SubCategoryModel {
 
 	@Id
@@ -18,7 +21,7 @@ public class SubCategoryModel {
 	private long subCategoryId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "auth_user_id")
+	@JoinColumn(name = "auth_user_id", nullable = false)
 	private AuthUserModel authUserInfo;
 
 	@Column(name = "sub_category_name", nullable = false)
@@ -29,17 +32,19 @@ public class SubCategoryModel {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "sub_category_status", nullable = false)
-	private subCategoryActive subCategoryActive;
+	private SubCategoryActive subCategoryActive;
 
-	public enum subCategoryActive {
+	public enum SubCategoryActive {
 		YES, NO
 	}
 
 	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private ZonedDateTime subCategoryCreatedAt;
+	@Column(name = "created_at", columnDefinition = "TIMESTAMP", updatable = false)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private java.time.Instant subCategoryCreatedAt;
 
 	@UpdateTimestamp
-	@Column(name = "updated_at")
-	private ZonedDateTime subCategoryUpdatedAt;
+	@Column(name = "updated_at", columnDefinition = "TIMESTAMP")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private java.time.Instant subCategoryUpdatedAt;
 }

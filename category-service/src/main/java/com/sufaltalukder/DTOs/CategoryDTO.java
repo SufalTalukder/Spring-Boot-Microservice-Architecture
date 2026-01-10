@@ -1,6 +1,6 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.CategoryModel.CategoryActive;
@@ -17,6 +17,6 @@ public class CategoryDTO {
 	private String categoryName;
 	private String categoryImage;
 	private CategoryActive categoryActive;
-	private ZonedDateTime categoryCreatedAt;
-	private ZonedDateTime categoryUpdatedAt;
+	private Instant categoryCreatedAt;
+	private Instant categoryUpdatedAt;
 }

@@ -47,7 +47,7 @@ public class ExcelUtils {
 					subCategory.setSubCategoryId((long) row.getCell(0).getNumericCellValue());
 					subCategory.setSubCategoryName(row.getCell(1).getStringCellValue());
 					subCategory.setSubCategoryActive(
-							SubCategoryModel.subCategoryActive.valueOf(row.getCell(2).getStringCellValue()));
+							SubCategoryModel.SubCategoryActive.valueOf(row.getCell(2).getStringCellValue()));
 					subCategories.add(subCategory);
 				}
 			}

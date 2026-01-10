@@ -1,6 +1,6 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 
@@ -17,6 +17,6 @@ public class ActionLogDTO {
 	private long userId;
 	private ActionLogMethod actionLogMethod;
 	private String actionLogMessage;
-	private ZonedDateTime actionLogCreatedAt;
+	private Instant actionLogCreatedAt;
 
 }

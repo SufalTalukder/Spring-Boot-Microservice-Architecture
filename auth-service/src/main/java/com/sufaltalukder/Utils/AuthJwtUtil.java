@@ -70,4 +70,17 @@ public class AuthJwtUtil {
 			throw new SecurityException("Invalid JWT token", e);
 		}
 	}
+
+	public String verifyAuthUser(String apiKey, String apiSecret) {
+
+		if (apiKey == null || !VALID_API_KEY.equals(apiKey)) {
+			throw new SecurityException("Invalid or missing x-api-key");
+		}
+
+		if (apiSecret == null || !VALID_API_SECRET.equals(apiSecret)) {
+			throw new SecurityException("Invalid or missing x-api-secret");
+		}
+
+		return "ok";
+	}
 }

@@ -1,6 +1,6 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.AuthUserModel.AuthUserActive;
@@ -13,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthUserDTO {
 
-	private long authUserId;
+	private Long authUserId;
 	private AuthUserModel actionByUserInfo;
 	private String authUserName;
 	private String authUserEmailAddress;
@@ -22,6 +22,6 @@ public class AuthUserDTO {
 	private String authUserImage;
 	private AuthUserActive authUserActive;
 	private AuthUserType authUserType;
-	private ZonedDateTime authUserCreatedAt;
-	private ZonedDateTime authUserUpdatedAt;
+	private Instant authUserCreatedAt;
+	private Instant authUserUpdatedAt;
 }

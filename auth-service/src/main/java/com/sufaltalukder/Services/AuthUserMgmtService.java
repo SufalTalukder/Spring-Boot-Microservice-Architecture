@@ -9,9 +9,12 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Models.AuthUserModel;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 public interface AuthUserMgmtService {
 
-	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword);
+	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
+			HttpServletRequest request);
 
 	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo);
 

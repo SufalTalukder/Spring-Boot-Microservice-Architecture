@@ -2,10 +2,11 @@ package com.sufaltalukder.Services;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,18 +16,27 @@ import com.sufaltalukder.Mappers.AuthUserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Models.ApiResponse;
+import com.sufaltalukder.Models.AuthLoginAuditModel;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.AuthUserModel.AuthUserActive;
+import com.sufaltalukder.Repositories.AuthLoginAuditRepository;
 import com.sufaltalukder.Repositories.AuthUserRepository;
+import com.sufaltalukder.Utils.AuthInfoUtil;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import ua_parser.Client;
+import ua_parser.Parser;
 
 @Service
 public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Autowired
 	private AuthUserRepository authUserRepository;
+
+	@Autowired
+	private AuthLoginAuditRepository authLoginAuditRepository;
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
@@ -38,19 +48,27 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	private final String passwordRegex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[@#$%^&+=]).{8,}$";
 
+	private static final Logger log = LoggerFactory.getLogger(AuthUserMgmtServiceImpl.class);
+
 	@Override
-	public ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword) {
+	public ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
+			HttpServletRequest request) {
 
 		AuthUserModel user = authUserRepository.findByAuthUserEmailAddress(authUserEmailAddress);
 
 		if (user == null) {
+			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
 			return new ApiResponse<>("not found", "Provided email doesn't exist.", null);
 		}
 
 		String encodedProvidedPassword = Base64.getEncoder().encodeToString(authUserPassword.getBytes());
+
 		if (!encodedProvidedPassword.equals(user.getAuthUserPassword())) {
+			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
 			return new ApiResponse<>("not matched", "Provided email or password doesn't match.", null);
 		}
+
+		saveAudit(user, request, "SUCCESS", "EMAIL_PASSWORD", null);
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -60,9 +78,49 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogData.setActionLogMessage("Login successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		// Generate token with email and user id as claims
-		String authToken = authJwtUtil.generateToken(authUserEmailAddress, user.getAuthUserId());
-		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(authToken));
+		String token = authJwtUtil.generateToken(authUserEmailAddress, user.getAuthUserId());
+
+		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(token));
+	}
+
+	private void saveAudit(AuthUserModel user, HttpServletRequest request, String loginStatus, String authMethod,
+			String failureReason) {
+		try {
+			String userAgent = request.getHeader("User-Agent");
+			String ipAddress = AuthInfoUtil.getClientIp(request);
+
+			// Parse User-Agent using uap-java
+			Parser uaParser = new Parser();
+			Client client = uaParser.parse(userAgent);
+
+			AuthLoginAuditModel audit = new AuthLoginAuditModel();
+			if (user != null)
+				audit.setAuthUserInfo(user);
+
+			audit.setIpAddress(ipAddress);
+			audit.setUserAgent(userAgent);
+
+			audit.setBrowser(client.userAgent.family);
+			audit.setBrowserVersion(client.userAgent.major);
+			audit.setOperatingSystem(client.os.family);
+			audit.setOsVersion(client.os.major);
+			audit.setDeviceType(
+					client.device.family != null && !client.device.family.equals("Other") ? client.device.family
+							: AuthInfoUtil.getDeviceType(userAgent));
+			audit.setDeviceModel(client.device.family != null ? client.device.family : "UNKNOWN");
+
+			audit.setPossibleIncognito(false);
+			audit.setLoginStatus(loginStatus);
+			audit.setAuthMethod(authMethod);
+			audit.setFailureReason(failureReason);
+			audit.setLoginTime(Instant.now());
+			audit.setSessionId(request.getSession() != null ? request.getSession().getId() : null);
+			audit.setReferrerUrl(request.getHeader("Referer"));
+
+			authLoginAuditRepository.save(audit);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -97,6 +155,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		AuthUserModel savedAuthUserInfo = authUserRepository.save(authUserInfo);
+
 		return new ApiResponse<>("success", "Auth user created successfully.", AuthUserMapper.toDTO(savedAuthUserInfo));
 	}
 
@@ -189,21 +248,21 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	@Override
 	public ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo) {
 
-		Optional<AuthUserModel> fetchAuthUser = authUserRepository
-				.findById(authUserInfo.getActionByUserInfo().getAuthUserId());
-		
+		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
+
 		if (fetchAuthUser.isEmpty()) {
 			return new ApiResponse<>("not found", "Auth user not found.", null);
 		}
-		
+
 		AuthUserModel fetchedAuthUser = fetchAuthUser.get();
 
 		// Update only the fields that are being modified
 		fetchedAuthUser.setAuthUserName(authUserInfo.getAuthUserName());
 		fetchedAuthUser.setAuthUserEmailAddress(authUserInfo.getAuthUserEmailAddress());
+		fetchedAuthUser.setAuthUserPassword(authUserInfo.getAuthUserPassword());
 		fetchedAuthUser.setAuthUserPhoneNumber(authUserInfo.getAuthUserPhoneNumber());
-		fetchedAuthUser.setAuthUserActive(AuthUserActive.YES);
-		fetchedAuthUser.setAuthUserUpdatedAt(ZonedDateTime.now());
+		fetchedAuthUser.setAuthUserType(authUserInfo.getAuthUserType());
+		fetchedAuthUser.setAuthUserActive(authUserInfo.getAuthUserActive());
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();

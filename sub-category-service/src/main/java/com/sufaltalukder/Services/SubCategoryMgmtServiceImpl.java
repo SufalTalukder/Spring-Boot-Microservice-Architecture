@@ -1,6 +1,5 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,6 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		savedData.setAuthUserInfo(authUser);
 		savedData.setSubCategoryName(subCategoryModel.getSubCategoryName());
 		savedData.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
-		savedData.setSubCategoryCreatedAt(ZonedDateTime.now());
 
 		SubCategoryModel saveData = subCategoryRepository.save(savedData);
 
@@ -120,7 +118,6 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		updatedSubCategoryObj.setAuthUserInfo(authUser);
 		updatedSubCategoryObj.setSubCategoryName(subCategoryModel.getSubCategoryName());
 		updatedSubCategoryObj.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
-		updatedSubCategoryObj.setSubCategoryUpdatedAt(ZonedDateTime.now());
 
 		SubCategoryModel updatedData = subCategoryRepository.save(updatedSubCategoryObj);
 

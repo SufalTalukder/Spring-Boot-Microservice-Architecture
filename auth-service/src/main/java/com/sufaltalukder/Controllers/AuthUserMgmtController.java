@@ -13,6 +13,8 @@ import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Services.AuthUserMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
 public class AuthUserMgmtController {
@@ -24,17 +26,30 @@ public class AuthUserMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/login")
-	public ResponseEntity<ApiResponse<AuthTokenResponse>> loginAuthUser(@RequestParam String authUserEmailAddress,
-			@RequestParam String authUserPassword) {
+	public ResponseEntity<ApiResponse<AuthTokenResponse>> loginAuthUser(
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam String authUserEmailAddress, @RequestParam String authUserPassword,
+			HttpServletRequest request) {
+		try {
+			authJwtUtil.verifyAuthUser(apiKey, apiSecret);
 
-		ApiResponse<AuthTokenResponse> response = authUserMgmtService.loginAuthUser(authUserEmailAddress,
-				authUserPassword);
+			ApiResponse<AuthTokenResponse> response = authUserMgmtService.loginAuthUser(authUserEmailAddress,
+					authUserPassword, request);
 
-		if ("not found".equals(response.getStatus()) || "not matched".equals(response.getStatus())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+			if (!"success".equals(response.getStatus())) {
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (SecurityException se) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", se.getMessage(), null));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ApiResponse<>("error", "Provided email or password doesn't match.", null));
 		}
-
-		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/create")
@@ -43,7 +58,6 @@ public class AuthUserMgmtController {
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody AuthUserModel authUserInfo) {
-
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 

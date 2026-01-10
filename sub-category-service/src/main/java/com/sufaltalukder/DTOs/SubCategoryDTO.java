@@ -1,9 +1,9 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.SubCategoryModel.subCategoryActive;
+import com.sufaltalukder.Models.SubCategoryModel.SubCategoryActive;
 
 import lombok.*;
 
@@ -16,8 +16,8 @@ public class SubCategoryDTO {
 	private AuthUserModel authUserInfo;
 	private String subCategoryName;
 	private String subCategoryImage;
-	private subCategoryActive subCategoryActive;
-	private ZonedDateTime subCategoryCreatedAt;
-	private ZonedDateTime subCategoryUpdatedAt;
+	private SubCategoryActive subCategoryActive;
+	private Instant subCategoryCreatedAt;
+	private Instant subCategoryUpdatedAt;
 
 }
