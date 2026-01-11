@@ -6,6 +6,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
@@ -152,6 +153,28 @@ public class AuthUserMgmtController {
 			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<AuthUserDTO> response = authUserMgmtService.getAuthUserDetails(authUserId);
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-auth-login-audit-details")
+	public ResponseEntity<ApiResponse<List<AuthLoginAuditDTO>>> getAuthUserLoginAuditDetails(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
+		try {
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<List<AuthLoginAuditDTO>> response = authUserMgmtService.getAuthUserLoginAuditDetails();
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

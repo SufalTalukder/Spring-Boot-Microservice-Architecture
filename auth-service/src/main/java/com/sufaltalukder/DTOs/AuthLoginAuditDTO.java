@@ -1,6 +1,9 @@
 package com.sufaltalukder.DTOs;
 
 import java.time.Instant;
+
+import com.sufaltalukder.Models.AuthUserModel;
+
 import lombok.*;
 
 @Data
@@ -9,6 +12,7 @@ import lombok.*;
 public class AuthLoginAuditDTO {
 
 	private Long authUserId;
+	private AuthUserModel authUserInfo;
 	private String ipAddress;
 	private String userAgent;
 	private String browser;
@@ -24,4 +28,5 @@ public class AuthLoginAuditDTO {
 	private Instant loginTime;
 	private String sessionId;
 	private String referrerUrl;
+	private Instant createdAt;
 }

@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
+import com.sufaltalukder.Mappers.AuthLoginAuditMapper;
 import com.sufaltalukder.Mappers.AuthUserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
@@ -317,5 +319,19 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 		authUserRepository.deleteAllById(rqstAuthUserIds);
 		return new ApiResponse<>("success", "All specified auth users are deleted successfully.", null);
+	}
+
+	@Override
+	public ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails() {
+
+		List<AuthLoginAuditModel> auditLists = authLoginAuditRepository.findAllAuditDetails();
+
+		if (auditLists.isEmpty()) {
+			return new ApiResponse<>("not found", "No audit detail(s) found.", null);
+		}
+
+		List<AuthLoginAuditDTO> dtos = auditLists.stream().map(AuthLoginAuditMapper::toDTO).toList();
+
+		return new ApiResponse<>("success", "Audit detail(s) list fetched successfully.", dtos);
 	}
 }

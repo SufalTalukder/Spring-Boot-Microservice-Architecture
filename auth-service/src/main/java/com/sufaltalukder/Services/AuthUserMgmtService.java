@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
@@ -23,6 +24,8 @@ public interface AuthUserMgmtService {
 	ApiResponse<AuthUserDTO> getAuthUser(long authUserId);
 
 	ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId);
+
+	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails();
 
 	ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo);
 
