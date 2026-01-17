@@ -17,7 +17,7 @@ public interface AuthUserMgmtService {
 	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
 			HttpServletRequest request);
 
-	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo);
+	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo, MultipartFile authUserImage);
 
 	ApiResponse<List<AuthUserDTO>> getAllAuthUsers();
 
@@ -27,7 +27,8 @@ public interface AuthUserMgmtService {
 
 	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails();
 
-	ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo);
+	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserModel authUserInfo,
+			MultipartFile authUserImage);
 
 	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId);
 

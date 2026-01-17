@@ -126,10 +126,11 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo) {
+	public ApiResponse<AuthUserDTO> createAuthUser(long actionByUserId, AuthUserModel authUserInfo,
+			MultipartFile authUserImage) {
 
-		AuthUserModel authUser = authUserRepository.findById(authUserId)
-				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+		AuthUserModel actionByUser = authUserRepository.findById(actionByUserId)
+				.orElseThrow(() -> new RuntimeException("Action user not found"));
 
 		String rawPassword = authUserInfo.getAuthUserPassword();
 
@@ -143,22 +144,50 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 			return new ApiResponse<>("invalid password", "Password does not meet the strength requirements.", null);
 		}
 
-		// Base64 encode the password before storing
+		// Encode password
 		String encodedPassword = Base64.getEncoder().encodeToString(rawPassword.getBytes());
-		authUserInfo.setAuthUserPassword(encodedPassword);
-		authUserInfo.setActionByUserInfo(authUser);
 
-		// Push data inside actionLogFeignService
+		authUserInfo.setAuthUserPassword(encodedPassword);
+		authUserInfo.setActionByUserInfo(actionByUser);
+
+		// Save user FIRST
+		AuthUserModel savedUser = authUserRepository.save(authUserInfo);
+
+		// Upload image using newly created authUserId
+		if (authUserImage != null && !authUserImage.isEmpty()) {
+			String imageName = storeAuthUserImage(savedUser.getAuthUserId(), authUserImage);
+			savedUser.setAuthUserImage(imageName);
+			authUserRepository.save(savedUser);
+		}
+
+		// Action log
 		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(authUserId);
-		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionByAuthUserId(actionByUserId);
+		actionLogData.setAuthUserId(savedUser.getAuthUserId());
 		actionLogData.setActionLogMethod(ActionLogMethod.POST);
 		actionLogData.setActionLogMessage("Auth user created successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		AuthUserModel savedAuthUserInfo = authUserRepository.save(authUserInfo);
+		return new ApiResponse<>("success", "Auth user created successfully.", AuthUserMapper.toDTO(savedUser));
+	}
 
-		return new ApiResponse<>("success", "Auth user created successfully.", AuthUserMapper.toDTO(savedAuthUserInfo));
+	private String storeAuthUserImage(long authUserId, MultipartFile file) {
+		try {
+			Path uploadPath = Paths.get(UPLOAD_DIR);
+			if (!Files.exists(uploadPath)) {
+				Files.createDirectories(uploadPath);
+			}
+
+			String fileName = authUserId + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+			Path filePath = uploadPath.resolve(fileName);
+			Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+			return fileName;
+
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to store auth user image", e);
+		}
 	}
 
 	@Override
@@ -248,35 +277,49 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> updateAuthUser(long authUserId, AuthUserModel authUserInfo) {
+	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserModel authUserInfo,
+			MultipartFile authUserImage) {
 
-		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
+		Optional<AuthUserModel> optionalUser = authUserRepository.findById(authUserId);
 
-		if (fetchAuthUser.isEmpty()) {
+		if (optionalUser.isEmpty()) {
 			return new ApiResponse<>("not found", "Auth user not found.", null);
 		}
 
-		AuthUserModel fetchedAuthUser = fetchAuthUser.get();
+		AuthUserModel user = optionalUser.get();
 
-		// Update only the fields that are being modified
-		fetchedAuthUser.setAuthUserName(authUserInfo.getAuthUserName());
-		fetchedAuthUser.setAuthUserEmailAddress(authUserInfo.getAuthUserEmailAddress());
-		fetchedAuthUser.setAuthUserPassword(authUserInfo.getAuthUserPassword());
-		fetchedAuthUser.setAuthUserPhoneNumber(authUserInfo.getAuthUserPhoneNumber());
-		fetchedAuthUser.setAuthUserType(authUserInfo.getAuthUserType());
-		fetchedAuthUser.setAuthUserActive(authUserInfo.getAuthUserActive());
+		// Update fields
+		user.setAuthUserName(authUserInfo.getAuthUserName());
+		user.setAuthUserEmailAddress(authUserInfo.getAuthUserEmailAddress());
+		user.setAuthUserPhoneNumber(authUserInfo.getAuthUserPhoneNumber());
+		user.setAuthUserType(authUserInfo.getAuthUserType());
+		user.setAuthUserActive(authUserInfo.getAuthUserActive());
 
-		// Push data inside actionLogFeignService
-		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(authUserId);
-		actionLogData.setAuthUserId(authUserId);
-		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
-		actionLogData.setActionLogMessage("Auth user updated successfully.");
-		actionLogFeignService.addActionLog(actionLogData);
+		// Update password ONLY if provided
+		if (authUserInfo.getAuthUserPassword() != null && !authUserInfo.getAuthUserPassword().isBlank()) {
 
-		AuthUserModel updateAuthUserInfo = authUserRepository.save(fetchedAuthUser);
-		return new ApiResponse<>("success", "Auth user updated successfully.",
-				AuthUserMapper.toDTO(updateAuthUserInfo));
+			String encodedPassword = Base64.getEncoder().encodeToString(authUserInfo.getAuthUserPassword().getBytes());
+
+			user.setAuthUserPassword(encodedPassword);
+		}
+
+		// Update image ONLY if new image provided
+		if (authUserImage != null && !authUserImage.isEmpty()) {
+			String imageName = storeAuthUserImage(authUserId, authUserImage);
+			user.setAuthUserImage(imageName);
+		}
+
+		AuthUserModel updatedUser = authUserRepository.save(user);
+
+		// Action log
+		ActionLogModel log = new ActionLogModel();
+		log.setActionByAuthUserId(actionByUserId);
+		log.setAuthUserId(authUserId);
+		log.setActionLogMethod(ActionLogMethod.PUT);
+		log.setActionLogMessage("Auth user updated successfully.");
+		actionLogFeignService.addActionLog(log);
+
+		return new ApiResponse<>("success", "Auth user updated successfully.", AuthUserMapper.toDTO(updatedUser));
 	}
 
 	@Override

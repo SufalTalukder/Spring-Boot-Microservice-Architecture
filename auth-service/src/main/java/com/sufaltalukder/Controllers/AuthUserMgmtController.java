@@ -53,20 +53,23 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	@PostMapping("/create")
+	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<AuthUserDTO>> createAuthUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-			@RequestBody AuthUserModel authUserInfo) {
-		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAuthUser(authUserId, authUserInfo);
+			@ModelAttribute AuthUserModel authUserInfo,
+			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
+		try {
+			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAuthUser(actionByUserId, authUserInfo,
+					authUserImage);
 
 			if ("required".equals(response.getStatus()) || "weak password".equals(response.getStatus())
 					|| "invalid password".equals(response.getStatus())) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+				return ResponseEntity.badRequest().body(response);
 			}
 
 			return ResponseEntity.ok(response);
@@ -188,16 +191,19 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	@PutMapping("/update-details")
+	@PutMapping(value = "/update-details", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<AuthUserDTO>> updateAuthUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
-			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long authUserId,
-			@RequestBody AuthUserModel authUserInfo) {
-		try {
-			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 
-			ApiResponse<AuthUserDTO> response = authUserMgmtService.updateAuthUser(authUserId, authUserInfo);
+			@RequestParam long authUserId, @ModelAttribute AuthUserModel authUserInfo,
+			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
+		try {
+			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthUserDTO> response = authUserMgmtService.updateAuthUser(actionByUserId, authUserId,
+					authUserInfo, authUserImage);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
