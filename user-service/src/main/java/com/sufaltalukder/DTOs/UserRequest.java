@@ -6,12 +6,14 @@ import java.time.Instant;
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.UserModel.UserActive;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class UserRequest {
 
 	private long userId;
 	private AuthUserModel authUserInfo;
@@ -19,10 +21,10 @@ public class UserDTO {
 	private String phoneNumber;
 	private String emailAddress;
 	private Date dob;
-	private String userImage;
 	private String userAddress;
 	private String userReferralCode;
 	private UserActive userActive;
 	private Instant userCreatedAt;
 	private Instant userUpdatedAt;
+
 }

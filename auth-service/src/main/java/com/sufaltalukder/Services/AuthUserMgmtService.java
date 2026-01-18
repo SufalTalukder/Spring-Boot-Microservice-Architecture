@@ -6,9 +6,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
+import com.sufaltalukder.DTOs.AuthUserRequest;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
-import com.sufaltalukder.Models.AuthUserModel;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -17,7 +17,7 @@ public interface AuthUserMgmtService {
 	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
 			HttpServletRequest request);
 
-	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserModel authUserInfo, MultipartFile authUserImage);
+	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserRequest authUserInfo, MultipartFile authUserImage);
 
 	ApiResponse<List<AuthUserDTO>> getAllAuthUsers();
 
@@ -27,7 +27,7 @@ public interface AuthUserMgmtService {
 
 	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails();
 
-	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserModel authUserInfo,
+	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserRequest authUserInfo,
 			MultipartFile authUserImage);
 
 	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId);

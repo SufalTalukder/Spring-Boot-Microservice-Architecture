@@ -256,7 +256,7 @@ public class UserServiceImpl implements UserService {
 		newUserData.setEmailAddress(userModel.getEmailAddress());
 		newUserData.setDob(userModel.getDob());
 		newUserData.setUserAddress(userModel.getUserAddress());
-		newUserData.setUserUpdatedAt(ZonedDateTime.now());
+		newUserData.setUserUpdatedAt(Instant.now());
 		UserModel updateUser = userRepository.save(newUserData);
 
 		return new ApiResponse<>("success", "User detail updated successfully.", UserMapper.toDTO(updateUser));

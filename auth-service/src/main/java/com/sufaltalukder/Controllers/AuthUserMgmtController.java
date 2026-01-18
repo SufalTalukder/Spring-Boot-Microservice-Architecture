@@ -8,9 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
+import com.sufaltalukder.DTOs.AuthUserRequest;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
-import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Services.AuthUserMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -59,7 +59,7 @@ public class AuthUserMgmtController {
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 
-			@ModelAttribute AuthUserModel authUserInfo,
+			@ModelAttribute AuthUserRequest authUserInfo,
 			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
 		try {
 			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
@@ -197,7 +197,7 @@ public class AuthUserMgmtController {
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 
-			@RequestParam long authUserId, @ModelAttribute AuthUserModel authUserInfo,
+			@RequestParam long authUserId, @ModelAttribute AuthUserRequest authUserInfo,
 			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
 		try {
 			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);

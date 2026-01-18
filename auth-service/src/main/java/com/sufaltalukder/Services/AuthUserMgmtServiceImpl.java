@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
+import com.sufaltalukder.DTOs.AuthUserRequest;
 import com.sufaltalukder.Mappers.AuthLoginAuditMapper;
 import com.sufaltalukder.Mappers.AuthUserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
@@ -126,7 +127,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> createAuthUser(long actionByUserId, AuthUserModel authUserInfo,
+	public ApiResponse<AuthUserDTO> createAuthUser(long actionByUserId, AuthUserRequest authUserInfo,
 			MultipartFile authUserImage) {
 
 		AuthUserModel actionByUser = authUserRepository.findById(actionByUserId)
@@ -151,7 +152,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		authUserInfo.setActionByUserInfo(actionByUser);
 
 		// Save user FIRST
-		AuthUserModel savedUser = authUserRepository.save(authUserInfo);
+		AuthUserModel savedUser = authUserRepository.save(AuthUserMapper.toEntity(authUserInfo));
 
 		// Upload image using newly created authUserId
 		if (authUserImage != null && !authUserImage.isEmpty()) {
@@ -277,7 +278,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserModel authUserInfo,
+	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserRequest authUserInfo,
 			MultipartFile authUserImage) {
 
 		Optional<AuthUserModel> optionalUser = authUserRepository.findById(authUserId);

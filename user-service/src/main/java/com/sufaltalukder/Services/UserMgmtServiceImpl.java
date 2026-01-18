@@ -3,7 +3,6 @@ package com.sufaltalukder.Services;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.SecureRandom;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.UserDTO;
+import com.sufaltalukder.DTOs.UserRequest;
 import com.sufaltalukder.Mappers.UserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
@@ -36,7 +36,7 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 	private final String UPLOAD_DIR = "uploads";
 
 	@Override
-	public ApiResponse<UserDTO> createUser(long authUserId, UserModel userInfo) {
+	public ApiResponse<UserDTO> createUser(long authUserId, UserRequest userInfo, MultipartFile userImage) {
 
 		// Check if phone number already exists
 		List<UserModel> existingUsers = userRepository.findByPhoneNumber(userInfo.getPhoneNumber());
@@ -56,7 +56,6 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 		savingUserData.setDob(userInfo.getDob());
 		savingUserData.setUserAddress(userInfo.getUserAddress());
 		savingUserData.setUserActive(userInfo.getUserActive());
-		savingUserData.setUserCreatedAt(ZonedDateTime.now());
 
 		// Generate referral code
 		savingUserData.setUserReferralCode(generateUniqueReferralCode());
@@ -156,7 +155,8 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<UserDTO> updateUserDetail(long authUserId, long userId, UserModel userInfo) {
+	public ApiResponse<UserDTO> updateUserDetail(long authUserId, long userId, UserRequest userInfo,
+			MultipartFile userImage) {
 
 		UserModel existingUser = userRepository.findUserDetailsByAuth(userId);
 		if (existingUser == null) {
@@ -183,7 +183,6 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 		existingUser.setDob(userInfo.getDob());
 		existingUser.setUserAddress(userInfo.getUserAddress());
 		existingUser.setUserActive(userInfo.getUserActive());
-		existingUser.setUserUpdatedAt(ZonedDateTime.now());
 
 		if (existingUser.getUserReferralCode() == null || existingUser.getUserReferralCode().isEmpty()) {
 
@@ -244,5 +243,4 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 
 		return new ApiResponse<>("success", "User deleted successfully.", null);
 	}
-
 }

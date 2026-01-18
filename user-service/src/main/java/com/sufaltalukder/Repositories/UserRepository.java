@@ -30,6 +30,7 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
 				SELECT u
 				FROM UserModel u
 				LEFT JOIN FETCH u.authUserInfo
+				ORDER BY u.userCreatedAt DESC
 			""")
 	List<UserModel> findAllUsersByAuth();
 
