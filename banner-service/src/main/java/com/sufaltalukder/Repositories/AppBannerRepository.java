@@ -15,6 +15,7 @@ public interface AppBannerRepository extends JpaRepository<AppBannerModel, Long>
 			    SELECT ab
 			    FROM AppBannerModel ab
 			    LEFT JOIN FETCH ab.authUserInfo
+			    ORDER BY ab.appBannerCreatedAt DESC
 			""")
 	List<AppBannerModel> findAllBanners();
 }

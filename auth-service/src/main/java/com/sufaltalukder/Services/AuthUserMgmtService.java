@@ -25,7 +25,9 @@ public interface AuthUserMgmtService {
 
 	ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId);
 
-	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails();
+	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAudits();
+
+	ApiResponse<AuthLoginAuditDTO> getAuthUserLoginAuditDetails(long authLoginAuditId);
 
 	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserRequest authUserInfo,
 			MultipartFile authUserImage);

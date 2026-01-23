@@ -18,7 +18,7 @@ public class AuthLoginAuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "auth_login_audit_id")
-	private Long authLoginAuditId;
+	private long authLoginAuditId;
 
 	@ManyToOne
 	@JoinColumn(name = "auth_user_id", nullable = true)

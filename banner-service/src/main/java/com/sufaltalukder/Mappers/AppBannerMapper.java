@@ -14,7 +14,7 @@ public class AppBannerMapper {
 		}
 
 		return new AppBannerDTO(entity.getAppBannerId(), entity.getAuthUserInfo(), entity.getAppBannerImage(),
-				entity.getAppBannerCreatedAt(), entity.getAppBannerUpdatedAt());
+				entity.getBannerActive(), entity.getAppBannerCreatedAt(), entity.getAppBannerUpdatedAt());
 	}
 
 	public static AppBannerModel toEntity(AppBannerDTO dto) {
@@ -27,6 +27,7 @@ public class AppBannerMapper {
 		entity.setAppBannerId(dto.getAppBannerId());
 		entity.setAuthUserInfo(dto.getAuthUserInfo());
 		entity.setAppBannerImage(dto.getAppBannerImage());
+		entity.setBannerActive(dto.getBannerActive());
 		entity.setAppBannerCreatedAt(dto.getAppBannerCreatedAt());
 		entity.setAppBannerUpdatedAt(dto.getAppBannerUpdatedAt());
 

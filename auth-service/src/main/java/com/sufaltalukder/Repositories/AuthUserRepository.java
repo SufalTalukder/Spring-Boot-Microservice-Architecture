@@ -18,6 +18,7 @@ public interface AuthUserRepository extends JpaRepository<AuthUserModel, Long> {
 			    SELECT au
 			    FROM AuthUserModel au
 			    LEFT JOIN FETCH au.actionByUserInfo
+			    ORDER BY au.authUserCreatedAt DESC
 			""")
 	List<AuthUserModel> findAllAuthUsers();
 

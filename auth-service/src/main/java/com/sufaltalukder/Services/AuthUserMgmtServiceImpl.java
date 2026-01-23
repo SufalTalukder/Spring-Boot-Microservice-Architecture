@@ -366,16 +366,29 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails() {
+	public ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAudits() {
 
 		List<AuthLoginAuditModel> auditLists = authLoginAuditRepository.findAllAuditDetails();
 
 		if (auditLists.isEmpty()) {
-			return new ApiResponse<>("not found", "No audit detail(s) found.", null);
+			return new ApiResponse<>("not found", "No login audit(s) found.", null);
 		}
 
 		List<AuthLoginAuditDTO> dtos = auditLists.stream().map(AuthLoginAuditMapper::toDTO).toList();
 
-		return new ApiResponse<>("success", "Audit detail(s) list fetched successfully.", dtos);
+		return new ApiResponse<>("success", "Login audit(s) list fetched successfully.", dtos);
+	}
+
+	@Override
+	public ApiResponse<AuthLoginAuditDTO> getAuthUserLoginAuditDetails(long authLoginAuditId) {
+
+		AuthLoginAuditModel isAuditIdExists = authLoginAuditRepository.findLoginAuditDetailsById(authLoginAuditId);
+
+		if (isAuditIdExists == null) {
+			return new ApiResponse<>("not found", "No audit ID found.", null);
+		}
+
+		return new ApiResponse<>("success", "Login audit detail(s) fetched successfully.",
+				AuthLoginAuditMapper.toDTO(isAuditIdExists));
 	}
 }

@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AppBannerDTO;
+import com.sufaltalukder.DTOs.RequestBannerDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Services.AppBannerMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
@@ -27,12 +27,13 @@ public class AppBannerMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-			@RequestParam("appBannerImage") MultipartFile[] appBannerImage) {
+			@ModelAttribute RequestBannerDTO requestBannerDTO) {
+
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<List<AppBannerDTO>> response = appBannerMgmtService.uploadMulipleImages(authUserId,
-					appBannerImage);
+					requestBannerDTO);
 
 			return ResponseEntity.ok(response);
 

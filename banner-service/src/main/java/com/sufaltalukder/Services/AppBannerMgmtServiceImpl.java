@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AppBannerDTO;
+import com.sufaltalukder.DTOs.RequestBannerDTO;
 import com.sufaltalukder.Mappers.AppBannerMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
@@ -34,7 +35,7 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 	private final String UPLOAD_DIR = "uploads";
 
 	@Override
-	public ApiResponse<List<AppBannerDTO>> uploadMulipleImages(long authUserId, MultipartFile[] appBannerImages) {
+	public ApiResponse<List<AppBannerDTO>> uploadMulipleImages(long authUserId, RequestBannerDTO requestBannerDTO) {
 
 		List<AppBannerModel> savedImages = new ArrayList<>();
 
@@ -46,40 +47,42 @@ public class AppBannerMgmtServiceImpl implements AppBannerMgmtService {
 			uploadDir.mkdirs();
 		}
 
-		for (MultipartFile file : appBannerImages) {
-			if (file.isEmpty()) {
+		for (MultipartFile file : requestBannerDTO.getAppBannerImages()) {
+
+			if (file == null || file.isEmpty())
 				continue;
-			}
 
 			try {
 				String originalFileName = file.getOriginalFilename();
-				String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-				String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+				String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+				String uniqueFileName = UUID.randomUUID() + extension;
 
 				Path filePath = Paths.get(UPLOAD_DIR, uniqueFileName);
 				Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-				AppBannerModel appBannerModel = new AppBannerModel();
-				appBannerModel.setAuthUserInfo(authUser);
-				appBannerModel.setAppBannerImage(uniqueFileName);
+				AppBannerModel banner = new AppBannerModel();
+				banner.setAuthUserInfo(authUser);
+				banner.setAppBannerImage(uniqueFileName);
+				banner.setBannerActive(requestBannerDTO.getBannerActive() != null ? requestBannerDTO.getBannerActive()
+						: AppBannerModel.BannerActive.YES);
 
-				savedImages.add(appBannerRepository.save(appBannerModel));
+				savedImages.add(appBannerRepository.save(banner));
 
 			} catch (IOException e) {
-				throw new RuntimeException("File upload failed", e);
+				throw new RuntimeException("Failed to upload banner image", e);
 			}
 		}
 
-		// Push data inside actionLogFeignService
-		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(authUserId);
-		actionLogData.setAuthUserId(authUserId);
-		actionLogData.setActionLogMethod(ActionLogMethod.POST);
-		actionLogData.setActionLogMessage("Banner image(s) uploaded successfully.");
-		actionLogFeignService.addActionLog(actionLogData);
+		// Action Log
+		ActionLogModel log = new ActionLogModel();
+		log.setActionByAuthUserId(authUserId);
+		log.setAuthUserId(authUserId);
+		log.setActionLogMethod(ActionLogMethod.POST);
+		log.setActionLogMessage("Banner image(s) uploaded successfully.");
+		actionLogFeignService.addActionLog(log);
 
-		List<AppBannerDTO> bannerDTOs = AppBannerMapper.toDTO(savedImages);
-		return new ApiResponse<>("success", "Banner image(s) uploaded successfully.", bannerDTOs);
+		return new ApiResponse<>("success", "Banner image(s) uploaded successfully.",
+				AppBannerMapper.toDTO(savedImages));
 	}
 
 	@Override

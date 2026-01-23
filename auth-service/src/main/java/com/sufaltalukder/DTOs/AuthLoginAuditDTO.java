@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthLoginAuditDTO {
 
-	private Long authUserId;
+	private long authLoginAuditId;
 	private AuthUserModel authUserInfo;
 	private String ipAddress;
 	private String userAgent;

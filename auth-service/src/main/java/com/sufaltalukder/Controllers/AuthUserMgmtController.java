@@ -169,15 +169,39 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	@GetMapping("/get-auth-login-audit-details")
-	public ResponseEntity<ApiResponse<List<AuthLoginAuditDTO>>> getAuthUserLoginAuditDetails(
+	@GetMapping("/get-auth-login-audits")
+	public ResponseEntity<ApiResponse<List<AuthLoginAuditDTO>>> getAuthUserLoginAudits(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
 			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<List<AuthLoginAuditDTO>> response = authUserMgmtService.getAuthUserLoginAuditDetails();
+			ApiResponse<List<AuthLoginAuditDTO>> response = authUserMgmtService.getAuthUserLoginAudits();
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-auth-login-audit-details")
+	public ResponseEntity<ApiResponse<AuthLoginAuditDTO>> getAuthUserLoginAuditDetails(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long authLoginAuditId) {
+		try {
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthLoginAuditDTO> response = authUserMgmtService
+					.getAuthUserLoginAuditDetails(authLoginAuditId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
