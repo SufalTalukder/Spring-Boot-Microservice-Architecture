@@ -1,24 +1,29 @@
 package com.sufaltalukder.Models;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "language_tbl")
+@Table(name = "language_tbl", indexes = { @Index(name = "idx_language_auth_user", columnList = "auth_user_id"),
+		@Index(name = "idx_language_name", columnList = "language_name"),
+		@Index(name = "idx_language_user_status", columnList = "auth_user_id, language_status"),
+		@Index(name = "idx_language_created_at", columnList = "created_at") })
 public class LanguageModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long languageId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "auth_user_id")
+	@ManyToOne
+	@JoinColumn(name = "auth_user_id", nullable = false)
 	private AuthUserModel authUserInfo;
 
 	@Column(name = "language_name", nullable = false)
@@ -33,10 +38,12 @@ public class LanguageModel {
 	}
 
 	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private ZonedDateTime languageCreatedAt;
+	@Column(name = "created_at", nullable = false, updatable = false)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private Instant languageCreatedAt;
 
 	@UpdateTimestamp
 	@Column(name = "updated_at")
-	private ZonedDateTime languageUpdatedAt;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private Instant languageUpdatedAt;
 }

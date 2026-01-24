@@ -1,6 +1,5 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.LanguageDTO;
+import com.sufaltalukder.DTOs.RequestLanguageDTO;
 import com.sufaltalukder.Mappers.LanguageMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
@@ -31,12 +31,12 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
-	public ApiResponse<LanguageDTO> createLanguage(long authUserId, LanguageModel model) {
+	public ApiResponse<LanguageDTO> createLanguage(long authUserId, RequestLanguageDTO requestLanguageDTO) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
-		LanguageModel exists = languageRepository.findByLanguageName(model.getLanguageName());
+		LanguageModel exists = languageRepository.findByLanguageName(requestLanguageDTO.getLanguageName());
 
 		if (exists != null) {
 			return new ApiResponse<>("exist", "Language already exists!", null);
@@ -44,9 +44,8 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 
 		LanguageModel saveData = new LanguageModel();
 		saveData.setAuthUserInfo(authUser);
-		saveData.setLanguageName(model.getLanguageName());
-		saveData.setLanguageActive(model.getLanguageActive());
-		saveData.setLanguageCreatedAt(ZonedDateTime.now());
+		saveData.setLanguageName(requestLanguageDTO.getLanguageName());
+		saveData.setLanguageActive(requestLanguageDTO.getLanguageActive());
 
 		LanguageModel saved = languageRepository.save(saveData);
 
@@ -85,7 +84,7 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 
 	@Override
 	public ApiResponse<List<LanguageDTO>> getAllLanguages() {
-		
+
 		List<LanguageModel> entities = languageRepository.findAllLanguages();
 
 		if (entities.isEmpty()) {
@@ -98,7 +97,8 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 	}
 
 	@Override
-	public ApiResponse<LanguageDTO> updateLanguage(long authUserId, long languageId, LanguageModel model) {
+	public ApiResponse<LanguageDTO> updateLanguage(long authUserId, long languageId,
+			RequestLanguageDTO requestLanguageDTO) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
@@ -109,7 +109,7 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 			return new ApiResponse<>("not found", "Language not found.", null);
 		}
 
-		LanguageModel exists = languageRepository.findByLanguageName(model.getLanguageName());
+		LanguageModel exists = languageRepository.findByLanguageName(requestLanguageDTO.getLanguageName());
 
 		if (exists != null && exists.getLanguageId() != languageId) {
 			return new ApiResponse<>("exist", "Language name already used!", null);
@@ -117,9 +117,8 @@ public class LanguageMgmtServiceImpl implements LanguageMgmtService {
 
 		LanguageModel entity = entityOpt.get();
 		entity.setAuthUserInfo(authUser);
-		entity.setLanguageName(model.getLanguageName());
-		entity.setLanguageActive(model.getLanguageActive());
-		entity.setLanguageUpdatedAt(ZonedDateTime.now());
+		entity.setLanguageName(requestLanguageDTO.getLanguageName());
+		entity.setLanguageActive(requestLanguageDTO.getLanguageActive());
 
 		LanguageModel updated = languageRepository.save(entity);
 

@@ -4,7 +4,7 @@ import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.LanguageModel.LanguageActive;
 import lombok.*;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 @Data
 @AllArgsConstructor
@@ -15,6 +15,6 @@ public class LanguageDTO {
 	private AuthUserModel authUserInfo;
 	private String languageName;
 	private LanguageActive languageActive;
-	private ZonedDateTime languageCreatedAt;
-	private ZonedDateTime languageUpdatedAt;
+	private Instant languageCreatedAt;
+	private Instant languageUpdatedAt;
 }

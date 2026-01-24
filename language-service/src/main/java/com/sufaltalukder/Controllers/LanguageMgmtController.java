@@ -7,8 +7,8 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.LanguageDTO;
+import com.sufaltalukder.DTOs.RequestLanguageDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.LanguageModel;
 import com.sufaltalukder.Services.LanguageMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -27,11 +27,11 @@ public class LanguageMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-			@RequestBody LanguageModel languageModel) {
+			@ModelAttribute RequestLanguageDTO requestLanguageDTO) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<LanguageDTO> response = languageMgmtService.createLanguage(authUserId, languageModel);
+			ApiResponse<LanguageDTO> response = languageMgmtService.createLanguage(authUserId, requestLanguageDTO);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -94,12 +94,12 @@ public class LanguageMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long languageId,
-			@RequestBody LanguageModel languageModel) {
+			@ModelAttribute RequestLanguageDTO requestLanguageDTO) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<LanguageDTO> response = languageMgmtService.updateLanguage(authUserId, languageId,
-					languageModel);
+					requestLanguageDTO);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
