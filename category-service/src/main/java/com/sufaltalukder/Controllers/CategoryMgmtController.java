@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.CategoryDTO;
+import com.sufaltalukder.DTOs.RequestCategoryDTO;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.CategoryModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Services.CategoryMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
@@ -36,16 +36,19 @@ public class CategoryMgmtController {
 	@Autowired
 	private AuthJwtUtil authJwtUtil;
 
-	@PostMapping("/create-category")
+	@PostMapping(value = "/create-category", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-			@RequestBody CategoryModel categoryModel) {
+
+			@ModelAttribute RequestCategoryDTO requestCategoryDTO,
+			@RequestPart(value = "categoryImage", required = false) MultipartFile categoryImage) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<CategoryDTO> response = categoryMgmtService.createCategory(authUserId, categoryModel);
+			ApiResponse<CategoryDTO> response = categoryMgmtService.createCategory(authUserId, requestCategoryDTO,
+					categoryImage);
 
 			if ("exist".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(response);
@@ -103,17 +106,19 @@ public class CategoryMgmtController {
 		}
 	}
 
-	@PutMapping("/update-category-details")
+	@PutMapping(value = "/update-category-details", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long categoryId,
-			@RequestBody CategoryModel categoryModel) {
+
+			@ModelAttribute RequestCategoryDTO requestCategoryDTO,
+			@RequestPart(value = "categoryImage", required = false) MultipartFile categoryImage) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<CategoryDTO> response = categoryMgmtService.updateCategory(authUserId, categoryId,
-					categoryModel);
+					requestCategoryDTO, categoryImage);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -202,17 +207,18 @@ public class CategoryMgmtController {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			try {
-				List<CategoryModel> categories = csvUtils.readCategoriesFromCsv(file.getInputStream());
-				for (CategoryModel category : categories) {
+				List<RequestCategoryDTO> categories = csvUtils.readCategoriesFromCsv(file.getInputStream());
+				for (RequestCategoryDTO category : categories) {
 					// Check if the category already exists and update or create accordingly
 					ApiResponse<CategoryDTO> response = categoryMgmtService
 							.getCategoryByName(category.getCategoryName());
 					if (response.getContent() != null) {
 						// Update existing category
-						categoryMgmtService.updateCategory(authUserId, response.getContent().getCategoryId(), category);
+						categoryMgmtService.updateCategory(authUserId, response.getContent().getCategoryId(), category,
+								file);
 					} else {
 						// Create new category
-						categoryMgmtService.createCategory(authUserId, category);
+						categoryMgmtService.createCategory(authUserId, category, file);
 					}
 				}
 

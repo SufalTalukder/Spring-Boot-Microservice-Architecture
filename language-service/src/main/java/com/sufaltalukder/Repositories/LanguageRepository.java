@@ -20,6 +20,7 @@ public interface LanguageRepository extends JpaRepository<LanguageModel, Long> {
 				SELECT l
 				FROM LanguageModel l
 				LEFT JOIN FETCH l.authUserInfo
+				ORDER BY l.languageCreatedAt DESC
 			""")
 	List<LanguageModel> findAllLanguages();
 

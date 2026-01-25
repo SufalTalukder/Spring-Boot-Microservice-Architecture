@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
+import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Services.AuthUserMgmtService;
@@ -30,13 +32,12 @@ public class AuthUserMgmtController {
 	public ResponseEntity<ApiResponse<AuthTokenResponse>> loginAuthUser(
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-			@RequestParam String authUserEmailAddress, @RequestParam String authUserPassword,
-			HttpServletRequest request) {
+
+			@ModelAttribute RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request) {
 		try {
 			authJwtUtil.verifyAuthUser(apiKey, apiSecret);
 
-			ApiResponse<AuthTokenResponse> response = authUserMgmtService.loginAuthUser(authUserEmailAddress,
-					authUserPassword, request);
+			ApiResponse<AuthTokenResponse> response = authUserMgmtService.loginAuthUser(requestAuthLoginDTO, request);
 
 			if (!"success".equals(response.getStatus())) {
 				return ResponseEntity.badRequest().body(response);
@@ -47,6 +48,7 @@ public class AuthUserMgmtController {
 		} catch (SecurityException se) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(new ApiResponse<>("error", se.getMessage(), null));
+
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new ApiResponse<>("error", "Provided email or password doesn't match.", null));
@@ -126,14 +128,14 @@ public class AuthUserMgmtController {
 	}
 
 	@GetMapping("/get-auth")
-	public ResponseEntity<ApiResponse<AuthUserDTO>> getAuthUser(
+	public ResponseEntity<ApiResponse<AuthResponseDTO>> getAuthUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<AuthUserDTO> response = authUserMgmtService.getAuthUser(authUserId);
+			ApiResponse<AuthResponseDTO> response = authUserMgmtService.getAuthUser(authUserId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

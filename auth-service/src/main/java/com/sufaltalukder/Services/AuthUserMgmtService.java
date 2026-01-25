@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
+import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
 
@@ -14,14 +16,13 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthUserMgmtService {
 
-	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
-			HttpServletRequest request);
+	ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request);
 
 	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserRequest authUserInfo, MultipartFile authUserImage);
 
 	ApiResponse<List<AuthUserDTO>> getAllAuthUsers();
 
-	ApiResponse<AuthUserDTO> getAuthUser(long authUserId);
+	ApiResponse<AuthResponseDTO> getAuthUser(long authUserId);
 
 	ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId);
 

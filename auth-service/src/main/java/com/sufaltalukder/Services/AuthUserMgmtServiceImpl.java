@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
+import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Mappers.AuthLoginAuditMapper;
 import com.sufaltalukder.Mappers.AuthUserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
@@ -22,6 +24,7 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthLoginAuditModel;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Models.AuthUserModel;
+import com.sufaltalukder.Models.AuthUserModel.AuthUserActive;
 import com.sufaltalukder.Repositories.AuthLoginAuditRepository;
 import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Utils.AuthInfoUtil;
@@ -54,26 +57,33 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	private static final Logger log = LoggerFactory.getLogger(AuthUserMgmtServiceImpl.class);
 
 	@Override
-	public ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword,
+	public ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO,
 			HttpServletRequest request) {
 
-		AuthUserModel user = authUserRepository.findByAuthUserEmailAddress(authUserEmailAddress);
+		AuthUserModel user = authUserRepository
+				.findByAuthUserEmailAddress(requestAuthLoginDTO.getAuthUserEmailAddress());
 
 		if (user == null) {
 			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
-			return new ApiResponse<>("not found", "Provided email doesn't exist.", null);
+			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
 		}
 
-		String encodedProvidedPassword = Base64.getEncoder().encodeToString(authUserPassword.getBytes());
+		if (user.getAuthUserActive() == AuthUserActive.NO) {
+			saveAudit(user, request, "FAILED", "EMAIL_PASSWORD", "USER_INACTIVE");
+			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
+		}
+
+		String encodedProvidedPassword = Base64.getEncoder()
+				.encodeToString(requestAuthLoginDTO.getAuthUserPassword().getBytes());
 
 		if (!encodedProvidedPassword.equals(user.getAuthUserPassword())) {
-			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
+			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_MATCH");
 			return new ApiResponse<>("not matched", "Provided email or password doesn't match.", null);
 		}
 
 		saveAudit(user, request, "SUCCESS", "EMAIL_PASSWORD", null);
 
-		// Push data inside actionLogFeignService
+		// Action log
 		ActionLogModel actionLogData = new ActionLogModel();
 		actionLogData.setActionByAuthUserId(user.getAuthUserId());
 		actionLogData.setAuthUserId(user.getAuthUserId());
@@ -81,7 +91,8 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogData.setActionLogMessage("Login successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		String token = authJwtUtil.generateToken(authUserEmailAddress, user.getAuthUserId());
+		// Generate JWT
+		String token = authJwtUtil.generateToken(user.getAuthUserEmailAddress(), user.getAuthUserId());
 
 		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(token));
 	}
@@ -265,16 +276,21 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> getAuthUser(long authUserId) {
+	public ApiResponse<AuthResponseDTO> getAuthUser(long authUserId) {
 
-		Optional<AuthUserModel> fetchAuthUser = authUserRepository.findById(authUserId);
+		return authUserRepository.findById(authUserId).map(authUser -> {
+			AuthResponseDTO dto = new AuthResponseDTO();
+			dto.setAuthUserId(authUser.getAuthUserId());
+			dto.setAuthUserEmailAddress(authUser.getAuthUserEmailAddress());
+			dto.setAuthUserPhoneNumber(authUser.getAuthUserPhoneNumber());
+			dto.setAuthUserName(authUser.getAuthUserName());
+			dto.setAuthUserImage(authUser.getAuthUserImage());
+			dto.setAuthUserActive(authUser.getAuthUserActive());
+			dto.setAuthUserType(authUser.getAuthUserType());
 
-		if (fetchAuthUser.isEmpty()) {
-			return new ApiResponse<>("not found", "Auth user not found.", null);
-		}
+			return new ApiResponse<>("success", "Auth user fetched successfully.", dto);
 
-		return new ApiResponse<>("success", "Auth user fetched successfully.",
-				AuthUserMapper.toDTO(fetchAuthUser.get()));
+		}).orElseGet(() -> new ApiResponse<>("not found", "Auth user not found.", null));
 	}
 
 	@Override

@@ -14,7 +14,7 @@ import feign.Param;
 @Repository
 public interface CategoryRepository extends JpaRepository<CategoryModel, Long> {
 
-	Optional<CategoryModel> findByCategoryName(String categoryName);
+	CategoryModel findByCategoryName(String categoryName);
 
 	@Query("""
 				SELECT c
@@ -28,6 +28,7 @@ public interface CategoryRepository extends JpaRepository<CategoryModel, Long> {
 				SELECT c
 				FROM CategoryModel c
 				LEFT JOIN FETCH c.authUserInfo
+				ORDER BY c.categoryCreatedAt DESC
 			""")
 	List<CategoryModel> findAllCategories();
 

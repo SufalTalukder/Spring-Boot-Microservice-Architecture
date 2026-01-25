@@ -13,25 +13,9 @@ public class AppBannerMapper {
 			return null;
 		}
 
-		return new AppBannerDTO(entity.getAppBannerId(), entity.getAuthUserInfo(), entity.getAppBannerImage(),
-				entity.getBannerActive(), entity.getAppBannerCreatedAt(), entity.getAppBannerUpdatedAt());
-	}
-
-	public static AppBannerModel toEntity(AppBannerDTO dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		AppBannerModel entity = new AppBannerModel();
-
-		entity.setAppBannerId(dto.getAppBannerId());
-		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setAppBannerImage(dto.getAppBannerImage());
-		entity.setBannerActive(dto.getBannerActive());
-		entity.setAppBannerCreatedAt(dto.getAppBannerCreatedAt());
-		entity.setAppBannerUpdatedAt(dto.getAppBannerUpdatedAt());
-
-		return entity;
+		return new AppBannerDTO(entity.getAppBannerId(), AuthUserMapper.toDTO(entity.getAuthUserInfo()),
+				entity.getAppBannerImage(), entity.getBannerActive(), entity.getAppBannerCreatedAt(),
+				entity.getAppBannerUpdatedAt());
 	}
 
 	public static List<AppBannerDTO> toDTO(List<AppBannerModel> entities) {

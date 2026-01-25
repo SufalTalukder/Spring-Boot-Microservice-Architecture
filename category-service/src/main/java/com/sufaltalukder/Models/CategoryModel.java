@@ -19,10 +19,10 @@ import lombok.Data;
 public class CategoryModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long categoryId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "auth_user_id", nullable = false)
 	private AuthUserModel authUserInfo;
 

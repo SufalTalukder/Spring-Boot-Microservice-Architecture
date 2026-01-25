@@ -10,32 +10,9 @@ public class UserMapper {
 			return null;
 		}
 
-		return new UserDTO(entity.getUserId(), entity.getAuthUserInfo(), entity.getFullName(), entity.getPhoneNumber(),
-				entity.getEmailAddress(), entity.getDob(), entity.getUserImage(), entity.getUserAddress(),
-				entity.getUserReferralCode(), entity.getUserActive(), entity.getUserCreatedAt(),
-				entity.getUserUpdatedAt());
-	}
-
-	public static UserModel toEntity(UserDTO dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		UserModel entity = new UserModel();
-
-		entity.setUserId(dto.getUserId());
-		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setFullName(dto.getFullName());
-		entity.setPhoneNumber(dto.getPhoneNumber());
-		entity.setEmailAddress(dto.getEmailAddress());
-		entity.setDob(dto.getDob());
-		entity.setUserImage(dto.getUserImage());
-		entity.setUserAddress(dto.getUserAddress());
-		entity.setUserReferralCode(dto.getUserReferralCode());
-		entity.setUserActive(dto.getUserActive());
-		entity.setUserCreatedAt(dto.getUserCreatedAt());
-		entity.setUserUpdatedAt(dto.getUserUpdatedAt());
-
-		return entity;
+		return new UserDTO(entity.getUserId(), AuthUserMapper.toDTO(entity.getAuthUserInfo()), entity.getFullName(),
+				entity.getPhoneNumber(), entity.getEmailAddress(), entity.getDob(), entity.getUserImage(),
+				entity.getUserAddress(), entity.getUserReferralCode(), entity.getUserActive(),
+				entity.getUserCreatedAt(), entity.getUserUpdatedAt());
 	}
 }

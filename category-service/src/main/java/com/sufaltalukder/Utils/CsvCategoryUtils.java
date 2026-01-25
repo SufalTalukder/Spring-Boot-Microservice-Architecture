@@ -1,6 +1,7 @@
 package com.sufaltalukder.Utils;
 
 import com.sufaltalukder.DTOs.CategoryDTO;
+import com.sufaltalukder.DTOs.RequestCategoryDTO;
 import com.sufaltalukder.Models.CategoryModel;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -23,8 +24,8 @@ public class CsvCategoryUtils {
 		}
 	}
 
-	public List<CategoryModel> readCategoriesFromCsv(InputStream inputStream) throws IOException {
-		List<CategoryModel> categories = new ArrayList<>();
+	public List<RequestCategoryDTO> readCategoriesFromCsv(InputStream inputStream) throws IOException {
+		List<RequestCategoryDTO> categories = new ArrayList<>();
 		try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream))) {
 			String[] headers = reader.readNext(); // Read the header line
 			// Check if headers are present and valid
@@ -35,7 +36,7 @@ public class CsvCategoryUtils {
 			// Read data lines
 			String[] nextLine;
 			while ((nextLine = reader.readNext()) != null) {
-				CategoryModel category = new CategoryModel();
+				RequestCategoryDTO category = new RequestCategoryDTO();
 				category.setCategoryName(nextLine[0]);
 				category.setCategoryActive(CategoryModel.CategoryActive.valueOf(nextLine[1]));
 				categories.add(category);
