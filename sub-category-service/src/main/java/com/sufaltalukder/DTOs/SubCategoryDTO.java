@@ -2,7 +2,6 @@ package com.sufaltalukder.DTOs;
 
 import java.time.Instant;
 
-import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.SubCategoryModel.SubCategoryActive;
 
 import lombok.*;
@@ -13,7 +12,7 @@ import lombok.*;
 public class SubCategoryDTO {
 
 	private long subCategoryId;
-	private AuthUserModel authUserInfo;
+	private AuthResponseDTO authUserInfo;
 	private String subCategoryName;
 	private String subCategoryImage;
 	private SubCategoryActive subCategoryActive;

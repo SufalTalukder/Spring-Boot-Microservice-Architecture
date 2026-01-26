@@ -21,6 +21,7 @@ public interface SubCategoryRepository extends JpaRepository<SubCategoryModel, L
 				SELECT sc
 				FROM SubCategoryModel sc
 				LEFT JOIN FETCH sc.authUserInfo
+				ORDER BY sc.subCategoryCreatedAt DESC
 			""")
 	List<SubCategoryModel> findAllSubCategories();
 

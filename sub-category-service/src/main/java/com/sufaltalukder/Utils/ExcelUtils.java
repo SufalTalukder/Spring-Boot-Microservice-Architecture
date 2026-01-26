@@ -1,5 +1,6 @@
 package com.sufaltalukder.Utils;
 
+import com.sufaltalukder.DTOs.RequestSubCategoryDTO;
 import com.sufaltalukder.DTOs.SubCategoryDTO;
 import com.sufaltalukder.Models.SubCategoryModel;
 import org.apache.poi.ss.usermodel.*;
@@ -36,15 +37,14 @@ public class ExcelUtils {
 	}
 
 	// Method to read SubCategories from an Excel file
-	public List<SubCategoryModel> readSubCategoriesFromExcel(InputStream inputStream) throws IOException {
-		List<SubCategoryModel> subCategories = new ArrayList<>();
+	public List<RequestSubCategoryDTO> readSubCategoriesFromExcel(InputStream inputStream) throws IOException {
+		List<RequestSubCategoryDTO> subCategories = new ArrayList<>();
 		try (Workbook workbook = new XSSFWorkbook(inputStream)) {
 			Sheet sheet = workbook.getSheetAt(0);
 			for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Skip header row
 				Row row = sheet.getRow(i);
 				if (row != null) {
-					SubCategoryModel subCategory = new SubCategoryModel();
-					subCategory.setSubCategoryId((long) row.getCell(0).getNumericCellValue());
+					RequestSubCategoryDTO subCategory = new RequestSubCategoryDTO();
 					subCategory.setSubCategoryName(row.getCell(1).getStringCellValue());
 					subCategory.setSubCategoryActive(
 							SubCategoryModel.SubCategoryActive.valueOf(row.getCell(2).getStringCellValue()));

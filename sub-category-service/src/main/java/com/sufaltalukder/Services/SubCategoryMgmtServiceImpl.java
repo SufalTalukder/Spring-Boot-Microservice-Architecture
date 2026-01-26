@@ -1,10 +1,17 @@
 package com.sufaltalukder.Services;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.RequestSubCategoryDTO;
 import com.sufaltalukder.DTOs.SubCategoryDTO;
 import com.sufaltalukder.Mappers.SubCategoryMapper;
 import com.sufaltalukder.Models.ActionLogModel;
@@ -28,25 +35,35 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
+	private final String UPLOAD_DIR = "uploads";
+
 	@Override
-	public ApiResponse<SubCategoryDTO> createSubCategory(long authUserId, SubCategoryModel subCategoryModel) {
+	public ApiResponse<SubCategoryDTO> createSubCategory(long authUserId, RequestSubCategoryDTO requestSubCategoryDTO,
+			MultipartFile subCategoryImage) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
 		SubCategoryModel isSubCategoryNameExist = subCategoryRepository
-				.findBySubCategoryName(subCategoryModel.getSubCategoryName());
+				.findBySubCategoryName(requestSubCategoryDTO.getSubCategoryName());
 
 		if (isSubCategoryNameExist != null) {
-			return new ApiResponse<>("exist", "SubCategory already exist!", null);
+			return new ApiResponse<>("exist", "SubCategory already exists!", null);
 		}
 
 		SubCategoryModel savedData = new SubCategoryModel();
 		savedData.setAuthUserInfo(authUser);
-		savedData.setSubCategoryName(subCategoryModel.getSubCategoryName());
-		savedData.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
+		savedData.setSubCategoryName(requestSubCategoryDTO.getSubCategoryName());
+		savedData.setSubCategoryActive(requestSubCategoryDTO.getSubCategoryActive());
 
 		SubCategoryModel saveData = subCategoryRepository.save(savedData);
+
+		// Upload image using newly created subCategoryId
+		if (subCategoryImage != null && !subCategoryImage.isEmpty()) {
+			String imageName = storeAuthUserImage(savedData.getSubCategoryId(), subCategoryImage);
+			savedData.setSubCategoryImage(imageName);
+			subCategoryRepository.save(savedData);
+		}
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -57,6 +74,25 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "SubCategory added successfully.", SubCategoryMapper.toDTO(saveData));
+	}
+
+	private String storeAuthUserImage(long categoryId, MultipartFile file) {
+		try {
+			Path uploadPath = Paths.get(UPLOAD_DIR);
+			if (!Files.exists(uploadPath)) {
+				Files.createDirectories(uploadPath);
+			}
+
+			String fileName = categoryId + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+			Path filePath = uploadPath.resolve(fileName);
+			Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+			return fileName;
+
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to store category image", e);
+		}
 	}
 
 	@Override
@@ -96,7 +132,7 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 
 	@Override
 	public ApiResponse<SubCategoryDTO> updateSubCategory(long authUserId, long subCategoryId,
-			SubCategoryModel subCategoryModel) {
+			RequestSubCategoryDTO requestSubCategoryDTO, MultipartFile subCategoryImage) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
@@ -108,7 +144,7 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		}
 
 		SubCategoryModel isSubCategoryNameExist = subCategoryRepository
-				.findBySubCategoryName(subCategoryModel.getSubCategoryName());
+				.findBySubCategoryName(requestSubCategoryDTO.getSubCategoryName());
 
 		if (isSubCategoryNameExist != null && isSubCategoryNameExist.getSubCategoryId() != subCategoryId) {
 			return new ApiResponse<>("exist", "SubCategory name already used!", null);
@@ -116,10 +152,17 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 
 		SubCategoryModel updatedSubCategoryObj = isSubCategoryIdExist.get();
 		updatedSubCategoryObj.setAuthUserInfo(authUser);
-		updatedSubCategoryObj.setSubCategoryName(subCategoryModel.getSubCategoryName());
-		updatedSubCategoryObj.setSubCategoryActive(subCategoryModel.getSubCategoryActive());
+		updatedSubCategoryObj.setSubCategoryName(requestSubCategoryDTO.getSubCategoryName());
+		updatedSubCategoryObj.setSubCategoryActive(requestSubCategoryDTO.getSubCategoryActive());
 
 		SubCategoryModel updatedData = subCategoryRepository.save(updatedSubCategoryObj);
+
+		// Upload image using newly created subCategoryId
+		if (subCategoryImage != null && !subCategoryImage.isEmpty()) {
+			String imageName = storeAuthUserImage(updatedData.getSubCategoryId(), subCategoryImage);
+			updatedData.setSubCategoryImage(imageName);
+			subCategoryRepository.save(updatedData);
+		}
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -154,4 +197,15 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 		return new ApiResponse<>("success", "SubCategory deleted successfully.", null);
 	}
 
+	@Override
+	public ApiResponse<SubCategoryDTO> getSubCategoryName(String subCategoryName) {
+
+		SubCategoryModel isCategoryNameExist = subCategoryRepository.findBySubCategoryName(subCategoryName);
+
+		if (isCategoryNameExist != null) {
+			return new ApiResponse<>("success", "SubCategory found.", SubCategoryMapper.toDTO(isCategoryNameExist));
+		} else {
+			return new ApiResponse<>("not found", "SubCategory not found.", null);
+		}
+	}
 }

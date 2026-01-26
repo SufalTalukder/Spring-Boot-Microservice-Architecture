@@ -17,10 +17,10 @@ import lombok.Data;
 public class SubCategoryModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long subCategoryId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "auth_user_id", nullable = false)
 	private AuthUserModel authUserInfo;
 
