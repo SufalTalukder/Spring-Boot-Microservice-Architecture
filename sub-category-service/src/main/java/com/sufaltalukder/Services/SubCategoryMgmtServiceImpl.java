@@ -91,7 +91,7 @@ public class SubCategoryMgmtServiceImpl implements SubCategoryMgmtService {
 			return fileName;
 
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to store category image", e);
+			throw new RuntimeException("Failed to store subcategory image", e);
 		}
 	}
 

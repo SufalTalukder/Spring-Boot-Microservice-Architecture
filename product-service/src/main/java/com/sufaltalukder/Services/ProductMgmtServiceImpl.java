@@ -1,12 +1,18 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.ProductDTO;
+import com.sufaltalukder.DTOs.RequestProductDTO;
 import com.sufaltalukder.Mappers.ProductMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
@@ -44,9 +50,11 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
+	private final String UPLOAD_DIR = "uploads";
+
 	@Override
 	public ApiResponse<ProductDTO> createProduct(long authUserId, long categoryId, long subCategoryId, long languageId,
-			ProductModel productModel) {
+			RequestProductDTO productInfo, MultipartFile productImage) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
@@ -60,10 +68,10 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		SubCategoryModel subCategory = subCategoryRepository.findById(subCategoryId)
 				.orElseThrow(() -> new RuntimeException("Subcategory not found"));
 
-		ProductModel isProductNameExist = productRepository.findByProductName(productModel.getProductName());
+		ProductModel isProductNameExist = productRepository.findByProductName(productInfo.getProductName());
 
 		if (isProductNameExist != null) {
-			return new ApiResponse<>("exist", "Product name already exist!", null);
+			return new ApiResponse<>("exist", "Product name already exists!", null);
 		}
 
 		ProductModel savingData = new ProductModel();
@@ -71,16 +79,23 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		savingData.setCategoryInfo(category);
 		savingData.setSubCategoryInfo(subCategory);
 		savingData.setLanguageInfo(language);
-		savingData.setProductName(productModel.getProductName());
-		savingData.setProductBrand(productModel.getProductBrand());
-		savingData.setProductCode(productModel.getProductCode());
-		savingData.setProductAvailability(productModel.getProductAvailability());
-		savingData.setProductPrice(productModel.getProductPrice());
-		savingData.setProductDetails(productModel.getProductDetails());
-		savingData.setProductStock(productModel.getProductStock());
-		savingData.setProductActive(productModel.getProductActive());
+		savingData.setProductName(productInfo.getProductName());
+		savingData.setProductBrand(productInfo.getProductBrand());
+		savingData.setProductCode(productInfo.getProductCode());
+		savingData.setProductAvailability(productInfo.getProductAvailability());
+		savingData.setProductPrice(productInfo.getProductPrice());
+		savingData.setProductDetails(productInfo.getProductDetails());
+		savingData.setProductStock(productInfo.getProductStock());
+		savingData.setProductActive(productInfo.getProductActive());
 
 		ProductModel savedData = productRepository.save(savingData);
+
+		// Upload image using newly created productId
+		if (productImage != null && !productImage.isEmpty()) {
+			String imageName = storeProductImage(savedData.getProductId(), productImage);
+			savedData.setProductImage(imageName);
+			productRepository.save(savedData);
+		}
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -91,6 +106,25 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "Product created successfully.", ProductMapper.toDTO(savedData));
+	}
+
+	private String storeProductImage(long categoryId, MultipartFile file) {
+		try {
+			Path uploadPath = Paths.get(UPLOAD_DIR);
+			if (!Files.exists(uploadPath)) {
+				Files.createDirectories(uploadPath);
+			}
+
+			String fileName = categoryId + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+			Path filePath = uploadPath.resolve(fileName);
+			Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+			return fileName;
+
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to store product image", e);
+		}
 	}
 
 	@Override
@@ -149,11 +183,12 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 	}
 
 	@Override
-	public ApiResponse<List<ProductDTO>> getAllProducts() {
+	public ApiResponse<List<ProductDTO>> getAllProducts(long categoryId, long subCategoryId, long languageId) {
 
-		List<ProductModel> products = productRepository.findAllProducts();
+		List<ProductModel> products = productRepository.findProductsByFilters(categoryId > 0 ? categoryId : null,
+				subCategoryId > 0 ? subCategoryId : null, languageId > 0 ? languageId : null);
 
-		if (products.isEmpty()) {
+		if (products == null || products.isEmpty()) {
 			return new ApiResponse<>("not found", "Product(s) not found.", null);
 		}
 
@@ -164,7 +199,7 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 
 	@Override
 	public ApiResponse<ProductDTO> updateProduct(long authUserId, long productId, long categoryId, long subCategoryId,
-			long languageId, ProductModel productModel) {
+			long languageId, RequestProductDTO productInfo, MultipartFile productImage) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
@@ -184,7 +219,7 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 			return new ApiResponse<>("not found", "No product found.", null);
 		}
 
-		ProductModel isProductNameExist = productRepository.findByProductName(productModel.getProductName());
+		ProductModel isProductNameExist = productRepository.findByProductName(productInfo.getProductName());
 
 		if (isProductNameExist != null && isProductNameExist.getProductId() != productId) {
 			return new ApiResponse<>("exist", "Product name already exist!", null);
@@ -195,17 +230,23 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		existingProduct.setCategoryInfo(category);
 		existingProduct.setSubCategoryInfo(subCategory);
 		existingProduct.setLanguageInfo(language);
-		existingProduct.setProductName(productModel.getProductName());
-		existingProduct.setProductBrand(productModel.getProductBrand());
-		existingProduct.setProductCode(productModel.getProductCode());
-		existingProduct.setProductAvailability(productModel.getProductAvailability());
-		existingProduct.setProductPrice(productModel.getProductPrice());
-		existingProduct.setProductDetails(productModel.getProductDetails());
-		existingProduct.setProductStock(productModel.getProductStock());
-		existingProduct.setProductActive(productModel.getProductActive());
-		existingProduct.setProductUpdatedAt(ZonedDateTime.now());
+		existingProduct.setProductName(productInfo.getProductName());
+		existingProduct.setProductBrand(productInfo.getProductBrand());
+		existingProduct.setProductCode(productInfo.getProductCode());
+		existingProduct.setProductAvailability(productInfo.getProductAvailability());
+		existingProduct.setProductPrice(productInfo.getProductPrice());
+		existingProduct.setProductDetails(productInfo.getProductDetails());
+		existingProduct.setProductStock(productInfo.getProductStock());
+		existingProduct.setProductActive(productInfo.getProductActive());
 
 		ProductModel updatedData = productRepository.save(existingProduct);
+
+		// Upload image using newly created productId
+		if (productImage != null && !productImage.isEmpty()) {
+			String imageName = storeProductImage(updatedData.getProductId(), productImage);
+			updatedData.setProductImage(imageName);
+			productRepository.save(updatedData);
+		}
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -237,62 +278,4 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		productRepository.deleteById(productId);
 		return new ApiResponse<>("success", "Product deleted successfully.", null);
 	}
-
-	@Override
-	public ApiResponse<List<ProductDTO>> getSearchedResults(String q) {
-		List<ProductModel> fetchedSearchedResults = productRepository.findSearchedResultsByQuery(q);
-
-		if (fetchedSearchedResults.isEmpty()) {
-			return new ApiResponse<>("not found", "No results found.", null);
-		}
-
-		List<ProductDTO> dtos = fetchedSearchedResults.stream().map(ProductMapper::toDTO).toList();
-		return new ApiResponse<>("success", "Results fetched successfully.", dtos);
-	}
-
-	// Filter by Language
-	@Override
-	public ApiResponse<List<ProductDTO>> getAllProductsFilterByLanguage(long languageId) {
-
-		List<ProductModel> filteredProducts = productRepository.findProductsByLanguageId(languageId);
-
-		if (filteredProducts.isEmpty()) {
-			return new ApiResponse<>("not found", "No products found for Language ID: " + languageId, null);
-		}
-
-		List<ProductDTO> dtos = filteredProducts.stream().map(ProductMapper::toDTO).toList();
-
-		return new ApiResponse<>("success", "Products fetched successfully.", dtos);
-	}
-
-	// Filter by Category
-	@Override
-	public ApiResponse<List<ProductDTO>> getAllProductsFilterByCategory(long categoryId) {
-
-		List<ProductModel> filteredProducts = productRepository.findProductsByCategoryId(categoryId);
-
-		if (filteredProducts.isEmpty()) {
-			return new ApiResponse<>("not found", "No products found for Category ID: " + categoryId, null);
-		}
-
-		List<ProductDTO> dtos = filteredProducts.stream().map(ProductMapper::toDTO).toList();
-
-		return new ApiResponse<>("success", "Products fetched successfully.", dtos);
-	}
-
-	// Filter by SubCategory
-	@Override
-	public ApiResponse<List<ProductDTO>> getAllProductsFilterBySubCategory(long subCategoryId) {
-
-		List<ProductModel> filteredProducts = productRepository.findProductsBySubCategoryId(subCategoryId);
-
-		if (filteredProducts.isEmpty()) {
-			return new ApiResponse<>("not found", "No products found for SubCategory ID: " + subCategoryId, null);
-		}
-
-		List<ProductDTO> dtos = filteredProducts.stream().map(ProductMapper::toDTO).toList();
-
-		return new ApiResponse<>("success", "Products fetched successfully.", dtos);
-	}
-
 }

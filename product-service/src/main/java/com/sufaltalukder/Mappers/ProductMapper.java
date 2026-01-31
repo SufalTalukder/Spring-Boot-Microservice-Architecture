@@ -13,38 +13,12 @@ public class ProductMapper {
 			return null;
 		}
 
-		return new ProductDTO(entity.getProductId(), entity.getAuthUserInfo(), entity.getLanguageInfo(),
-				entity.getCategoryInfo(), entity.getSubCategoryInfo(), entity.getProductName(), entity.getProductBrand(),
+		return new ProductDTO(entity.getProductId(), AuthUserMapper.toDTO(entity.getAuthUserInfo()),
+				LanguageMapper.toDTO(entity.getLanguageInfo()), CategoryMapper.toDTO(entity.getCategoryInfo()),
+				SubCategoryMapper.toDTO(entity.getSubCategoryInfo()), entity.getProductName(), entity.getProductBrand(),
 				entity.getProductCode(), entity.getProductAvailability(), entity.getProductPrice(),
 				entity.getProductDetails(), entity.getProductImage(), entity.getProductStock(),
 				entity.getProductActive(), entity.getProductCreatedAt(), entity.getProductUpdatedAt());
-	}
-
-	public static ProductModel toEntity(ProductDTO dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		ProductModel entity = new ProductModel();
-
-		entity.setProductId(dto.getProductId());
-		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setLanguageInfo(dto.getLanguageInfo());
-		entity.setCategoryInfo(dto.getCategoryInfo());
-		entity.setSubCategoryInfo(dto.getSubCategoryInfo());
-		entity.setProductName(dto.getProductName());
-		entity.setProductBrand(dto.getProductBrand());
-		entity.setProductCode(dto.getProductCode());
-		entity.setProductAvailability(dto.getProductAvailability());
-		entity.setProductPrice(dto.getProductPrice());
-		entity.setProductDetails(dto.getProductDetails());
-		entity.setProductImage(dto.getProductImage());
-		entity.setProductStock(dto.getProductStock());
-		entity.setProductActive(dto.getProductActive());
-		entity.setProductCreatedAt(dto.getProductCreatedAt());
-		entity.setProductUpdatedAt(dto.getProductUpdatedAt());
-
-		return entity;
 	}
 
 	public static List<ProductDTO> toDTO(List<ProductModel> entities) {

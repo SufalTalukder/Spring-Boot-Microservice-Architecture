@@ -32,9 +32,9 @@ public class SubCategoryModel {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "sub_category_status", nullable = false)
-	private subCategoryActive subCategoryActive;
+	private SubCategoryActive subCategoryActive;
 
-	public enum subCategoryActive {
+	public enum SubCategoryActive {
 		YES, NO
 	}
 
