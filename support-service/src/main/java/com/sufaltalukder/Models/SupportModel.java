@@ -22,7 +22,7 @@ import lombok.Data;
 public class SupportModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long supportId;
 
 	@ManyToOne

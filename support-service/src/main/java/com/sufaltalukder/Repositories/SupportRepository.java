@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.sufaltalukder.Models.SupportModel;
 
@@ -18,8 +19,10 @@ public interface SupportRepository extends JpaRepository<SupportModel, Long> {
 			    FROM SupportModel sm
 			    LEFT JOIN FETCH sm.authUserInfo
 			    LEFT JOIN FETCH sm.userInfo
+			    WHERE (:supportStatus IS NULL OR sm.supportStatus = :supportStatus)
 			    ORDER BY sm.supportCreatedAt DESC
 			""")
-	List<SupportModel> findAllUserSupports();
+	List<SupportModel> findAllUserSupportsBySupportStatus(
+			@Param("supportStatus") SupportModel.SupportStatus supportStatus);
 
 }

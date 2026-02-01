@@ -10,26 +10,8 @@ public class SupportMapper {
 			return null;
 		}
 
-		return new SupportDTO(entity.getSupportId(), entity.getAuthUserInfo(), entity.getUserInfo(),
-				entity.getSupportText(), entity.getSupportStatus(), entity.getSupportCreatedAt(),
-				entity.getSupportUpdatedAt());
-	}
-
-	public static SupportModel toEntity(SupportDTO dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		SupportModel entity = new SupportModel();
-
-		entity.setSupportId(dto.getSupportId());
-		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setUserInfo(dto.getUserInfo());
-		entity.setSupportText(dto.getSupportText());
-		entity.setSupportStatus(dto.getSupportStatus());
-		entity.setSupportCreatedAt(dto.getSupportCreatedAt());
-		entity.setSupportUpdatedAt(dto.getSupportUpdatedAt());
-
-		return entity;
+		return new SupportDTO(entity.getSupportId(), AuthUserMapper.toDTO(entity.getAuthUserInfo()),
+				UserMapper.toDTO(entity.getUserInfo()), entity.getSupportText(), entity.getSupportStatus(),
+				entity.getSupportCreatedAt(), entity.getSupportUpdatedAt());
 	}
 }

@@ -2,8 +2,6 @@ package com.sufaltalukder.DTOs;
 
 import java.time.Instant;
 
-import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Models.SupportModel.SupportStatus;
 
 import lombok.*;
@@ -14,8 +12,8 @@ import lombok.*;
 public class SupportDTO {
 
 	private long supportId;
-	private AuthUserModel authUserInfo;
-	private UserModel userInfo;
+	private AuthResponseDTO authUserInfo;
+	private UserResponseDTO userInfo;
 	private String supportText;
 	private SupportStatus supportStatus;
 	private Instant supportCreatedAt;

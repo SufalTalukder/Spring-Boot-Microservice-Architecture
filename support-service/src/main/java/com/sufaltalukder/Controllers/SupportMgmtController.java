@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.sufaltalukder.DTOs.RequestSupportDTO;
 import com.sufaltalukder.DTOs.SupportDTO;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.SupportModel;
 import com.sufaltalukder.Services.SupportMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
@@ -27,11 +27,12 @@ public class SupportMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
-			@RequestBody SupportModel supportModel) {
+
+			@ModelAttribute RequestSupportDTO requestSupportDTO) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<SupportDTO> response = supportMgmtService.addUserSupport(authUserId, userId, supportModel);
+			ApiResponse<SupportDTO> response = supportMgmtService.addUserSupport(authUserId, userId, requestSupportDTO);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -72,11 +73,12 @@ public class SupportMgmtController {
 	public ResponseEntity<ApiResponse<List<SupportDTO>>> getAllUserSupports(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
-			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam(value = "supportStatus", required = false) String supportStatus) {
 		try {
 			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<List<SupportDTO>> response = supportMgmtService.getAllUserSupports();
+			ApiResponse<List<SupportDTO>> response = supportMgmtService.getAllUserSupports(supportStatus);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -95,12 +97,12 @@ public class SupportMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long supportId,
-			@RequestParam long userId, @RequestBody SupportModel supportModel) {
+			@RequestParam long userId, @ModelAttribute RequestSupportDTO requestSupportDTO) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<SupportDTO> response = supportMgmtService.updateUserSupportDetails(authUserId, supportId,
-					userId, supportModel);
+					userId, requestSupportDTO);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

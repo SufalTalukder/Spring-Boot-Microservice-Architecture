@@ -4,6 +4,7 @@ import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sufaltalukder.DTOs.RequestSupportDTO;
 import com.sufaltalukder.DTOs.SupportDTO;
 import com.sufaltalukder.Mappers.SupportMapper;
 import com.sufaltalukder.Models.ActionLogModel;
@@ -33,7 +34,7 @@ public class SupportMgmtServiceImpl implements SupportMgmtService {
 	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
-	public ApiResponse<SupportDTO> addUserSupport(long authUserId, long userId, SupportModel supportModel) {
+	public ApiResponse<SupportDTO> addUserSupport(long authUserId, long userId, RequestSupportDTO requestSupportDTO) {
 
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
@@ -43,8 +44,8 @@ public class SupportMgmtServiceImpl implements SupportMgmtService {
 		SupportModel savingData = new SupportModel();
 		savingData.setAuthUserInfo(authUser);
 		savingData.setUserInfo(user);
-		savingData.setSupportText(supportModel.getSupportText());
-		savingData.setSupportStatus(supportModel.getSupportStatus());
+		savingData.setSupportText(requestSupportDTO.getSupportText());
+		savingData.setSupportStatus(requestSupportDTO.getSupportStatus());
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -79,9 +80,19 @@ public class SupportMgmtServiceImpl implements SupportMgmtService {
 	}
 
 	@Override
-	public ApiResponse<List<SupportDTO>> getAllUserSupports() {
+	public ApiResponse<List<SupportDTO>> getAllUserSupports(String supportStatus) {
 
-		List<SupportModel> supports = supportRepository.findAllUserSupports();
+		SupportModel.SupportStatus statusEnum = null;
+
+		if (supportStatus != null && !supportStatus.isBlank()) {
+			try {
+				statusEnum = SupportModel.SupportStatus.valueOf(supportStatus.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				return new ApiResponse<>("error", "Invalid support status.", null);
+			}
+		}
+
+		List<SupportModel> supports = supportRepository.findAllUserSupportsBySupportStatus(statusEnum);
 
 		if (supports.isEmpty()) {
 			return new ApiResponse<>("not found", "No supports found.", null);
@@ -93,7 +104,7 @@ public class SupportMgmtServiceImpl implements SupportMgmtService {
 
 	@Override
 	public ApiResponse<SupportDTO> updateUserSupportDetails(long authUserId, long supportId, long userId,
-			SupportModel supportModel) {
+			RequestSupportDTO requestSupportDTO) {
 
 		SupportModel support = supportRepository.findBySupportIdAndUserInfo_UserId(supportId, userId).orElse(null);
 
@@ -108,8 +119,8 @@ public class SupportMgmtServiceImpl implements SupportMgmtService {
 
 		support.setAuthUserInfo(authUser);
 		support.setUserInfo(user);
-		support.setSupportText(supportModel.getSupportText());
-		support.setSupportStatus(supportModel.getSupportStatus());
+		support.setSupportText(requestSupportDTO.getSupportText());
+		support.setSupportStatus(requestSupportDTO.getSupportStatus());
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
