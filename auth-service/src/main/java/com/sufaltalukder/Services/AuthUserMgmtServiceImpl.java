@@ -3,6 +3,7 @@ package com.sufaltalukder.Services;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -25,17 +26,22 @@ import com.sufaltalukder.Models.AuthLoginAuditModel;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.AuthUserModel.AuthUserActive;
+import com.sufaltalukder.Models.AuthUserRefreshTokenModel;
 import com.sufaltalukder.Repositories.AuthLoginAuditRepository;
+import com.sufaltalukder.Repositories.AuthUserRefreshTokenRepository;
 import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Utils.AuthInfoUtil;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import ua_parser.Client;
 import ua_parser.Parser;
 
 @Service
+@RequiredArgsConstructor
 public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Autowired
@@ -43,6 +49,9 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Autowired
 	private AuthLoginAuditRepository authLoginAuditRepository;
+
+	@Autowired
+	private AuthUserRefreshTokenRepository authUserRefreshTokenRepository;
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
@@ -57,88 +66,7 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	private static final Logger log = LoggerFactory.getLogger(AuthUserMgmtServiceImpl.class);
 
 	@Override
-	public ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO,
-			HttpServletRequest request) {
-
-		AuthUserModel user = authUserRepository
-				.findByAuthUserEmailAddress(requestAuthLoginDTO.getAuthUserEmailAddress());
-
-		if (user == null) {
-			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
-			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
-		}
-
-		if (user.getAuthUserActive() == AuthUserActive.NO) {
-			saveAudit(user, request, "FAILED", "EMAIL_PASSWORD", "USER_INACTIVE");
-			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
-		}
-
-		String encodedProvidedPassword = Base64.getEncoder()
-				.encodeToString(requestAuthLoginDTO.getAuthUserPassword().getBytes());
-
-		if (!encodedProvidedPassword.equals(user.getAuthUserPassword())) {
-			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_MATCH");
-			return new ApiResponse<>("not matched", "Provided email or password doesn't match.", null);
-		}
-
-		saveAudit(user, request, "SUCCESS", "EMAIL_PASSWORD", null);
-
-		// Action log
-		ActionLogModel actionLogData = new ActionLogModel();
-		actionLogData.setActionByAuthUserId(user.getAuthUserId());
-		actionLogData.setAuthUserId(user.getAuthUserId());
-		actionLogData.setActionLogMethod(ActionLogMethod.POST);
-		actionLogData.setActionLogMessage("Login successfully.");
-		actionLogFeignService.addActionLog(actionLogData);
-
-		// Generate JWT
-		String token = authJwtUtil.generateToken(user.getAuthUserEmailAddress(), user.getAuthUserId());
-
-		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(token));
-	}
-
-	private void saveAudit(AuthUserModel user, HttpServletRequest request, String loginStatus, String authMethod,
-			String failureReason) {
-		try {
-			String userAgent = request.getHeader("User-Agent");
-			String ipAddress = AuthInfoUtil.getClientIp(request);
-
-			// Parse User-Agent using uap-java
-			Parser uaParser = new Parser();
-			Client client = uaParser.parse(userAgent);
-
-			AuthLoginAuditModel audit = new AuthLoginAuditModel();
-			if (user != null)
-				audit.setAuthUserInfo(user);
-
-			audit.setIpAddress(ipAddress);
-			audit.setUserAgent(userAgent);
-
-			audit.setBrowser(client.userAgent.family);
-			audit.setBrowserVersion(client.userAgent.major);
-			audit.setOperatingSystem(client.os.family);
-			audit.setOsVersion(client.os.major);
-			audit.setDeviceType(
-					client.device.family != null && !client.device.family.equals("Other") ? client.device.family
-							: AuthInfoUtil.getDeviceType(userAgent));
-			audit.setDeviceModel(client.device.family != null ? client.device.family : "UNKNOWN");
-
-			audit.setPossibleIncognito(false);
-			audit.setLoginStatus(loginStatus);
-			audit.setAuthMethod(authMethod);
-			audit.setFailureReason(failureReason);
-			audit.setLoginTime(Instant.now());
-			audit.setSessionId(request.getSession() != null ? request.getSession().getId() : null);
-			audit.setReferrerUrl(request.getHeader("Referer"));
-
-			authLoginAuditRepository.save(audit);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public ApiResponse<AuthUserDTO> createAuthUser(long actionByUserId, AuthUserRequest authUserInfo,
+	public ApiResponse<AuthUserDTO> createAuthUser(long actionByUserId, @Valid AuthUserRequest authUserInfo,
 			MultipartFile authUserImage) {
 
 		AuthUserModel actionByUser = authUserRepository.findById(actionByUserId)
@@ -181,6 +109,104 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "Auth user created successfully.", AuthUserMapper.toDTO(savedUser));
+	}
+
+	@Override
+	public ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO,
+			HttpServletRequest request) {
+
+		AuthUserModel user = authUserRepository
+				.findByAuthUserEmailAddress(requestAuthLoginDTO.getAuthUserEmailAddress());
+
+		if (user == null) {
+			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_FOUND");
+			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
+		}
+
+		if (user.getAuthUserActive() == AuthUserActive.NO) {
+			saveAudit(user, request, "FAILED", "EMAIL_PASSWORD", "USER_INACTIVE");
+			return new ApiResponse<>("unauthorized", "Invalid email or password.", null);
+		}
+
+		if (user.getAuthUserActive() == AuthUserActive.ON_HOLD) {
+			saveAudit(user, request, "FAILED", "EMAIL_PASSWORD", "USER_ON_HOLD");
+			return new ApiResponse<>("unauthorized", "Currently, your're on hold. Get back soon.", null);
+		}
+
+		String encodedProvidedPassword = Base64.getEncoder()
+				.encodeToString(requestAuthLoginDTO.getAuthUserPassword().getBytes());
+
+		if (!encodedProvidedPassword.equals(user.getAuthUserPassword())) {
+			saveAudit(null, request, "FAILED", "EMAIL_PASSWORD", "USER_NOT_MATCH");
+			return new ApiResponse<>("not matched", "Provided email or password doesn't match.", null);
+		}
+
+		saveAudit(user, request, "SUCCESS", "EMAIL_PASSWORD", null);
+
+		// Action log
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(user.getAuthUserId());
+		actionLogData.setAuthUserId(user.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Login successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		// Generate JWT
+		String accessToken = authJwtUtil.generateAccessToken(user.getAuthUserEmailAddress(), user.getAuthUserId());
+
+		String refreshToken = authJwtUtil.generateRefreshToken(user.getAuthUserId());
+
+		// save refresh token
+		AuthUserRefreshTokenModel refreshTokenModel = new AuthUserRefreshTokenModel();
+		refreshTokenModel.setAuthUserId(user.getAuthUserId());
+		refreshTokenModel.setRefreshToken(refreshToken);
+		refreshTokenModel.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
+		refreshTokenModel.setRevoked(false);
+
+		authUserRefreshTokenRepository.save(refreshTokenModel);
+
+		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(accessToken, refreshToken));
+
+	}
+
+	private void saveAudit(AuthUserModel user, HttpServletRequest request, String loginStatus, String authMethod,
+			String failureReason) {
+		try {
+			String userAgent = request.getHeader("User-Agent");
+			String ipAddress = AuthInfoUtil.getClientIp(request);
+
+			// Parse User-Agent using uap-java
+			Parser uaParser = new Parser();
+			Client client = uaParser.parse(userAgent);
+
+			AuthLoginAuditModel audit = new AuthLoginAuditModel();
+			if (user != null)
+				audit.setAuthUserInfo(user);
+
+			audit.setIpAddress(ipAddress);
+			audit.setUserAgent(userAgent);
+
+			audit.setBrowser(client.userAgent.family);
+			audit.setBrowserVersion(client.userAgent.major);
+			audit.setOperatingSystem(client.os.family);
+			audit.setOsVersion(client.os.major);
+			audit.setDeviceType(
+					client.device.family != null && !client.device.family.equals("Other") ? client.device.family
+							: AuthInfoUtil.getDeviceType(userAgent));
+			audit.setDeviceModel(client.device.family != null ? client.device.family : "UNKNOWN");
+
+			audit.setPossibleIncognito(false);
+			audit.setLoginStatus(loginStatus);
+			audit.setAuthMethod(authMethod);
+			audit.setFailureReason(failureReason);
+			audit.setLoginTime(Instant.now());
+			audit.setSessionId(request.getSession() != null ? request.getSession().getId() : null);
+			audit.setReferrerUrl(request.getHeader("Referer"));
+
+			authLoginAuditRepository.save(audit);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private String storeAuthUserImage(long authUserId, MultipartFile file) {
@@ -406,5 +432,41 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 		return new ApiResponse<>("success", "Login audit detail(s) fetched successfully.",
 				AuthLoginAuditMapper.toDTO(isAuditIdExists));
+	}
+
+	@Override
+	public ApiResponse<AuthUserDTO> createAccount(@Valid AuthUserRequest authUserInfo) {
+
+		String rawPassword = authUserInfo.getAuthUserPassword();
+
+		if (rawPassword == null || rawPassword.isEmpty()) {
+			return new ApiResponse<>("required", "Password is required.", null);
+		}
+		if (rawPassword.length() < 8) {
+			return new ApiResponse<>("weak password", "Password minimum 8 characters needed.", null);
+		}
+		if (!Pattern.matches(passwordRegex, rawPassword)) {
+			return new ApiResponse<>("invalid password", "Password does not meet the strength requirements.", null);
+		}
+
+		// Encode password
+		String encodedPassword = Base64.getEncoder().encodeToString(rawPassword.getBytes());
+
+		authUserInfo.setAuthUserPassword(encodedPassword);
+		authUserInfo.setActionByUserInfo(null);
+		authUserInfo.setAuthUserActive(AuthUserActive.ON_HOLD);
+
+		// Save user FIRST
+		AuthUserModel savedUser = authUserRepository.save(AuthUserMapper.toEntity(authUserInfo));
+
+		// Action log
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(0);
+		actionLogData.setAuthUserId(savedUser.getAuthUserId());
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Account created successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "Account created successfully.", AuthUserMapper.toDTO(savedUser));
 	}
 }

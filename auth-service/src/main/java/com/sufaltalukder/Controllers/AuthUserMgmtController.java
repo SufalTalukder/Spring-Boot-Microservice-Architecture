@@ -1,5 +1,6 @@
 package com.sufaltalukder.Controllers;
 
+import java.time.Instant;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -13,13 +14,22 @@ import com.sufaltalukder.DTOs.AuthUserRequest;
 import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
+import com.sufaltalukder.Models.AuthUserModel;
+import com.sufaltalukder.Models.AuthUserRefreshTokenModel;
+import com.sufaltalukder.Models.LogoutRequest;
+import com.sufaltalukder.Models.RefreshTokenRequest;
+import com.sufaltalukder.Repositories.AuthUserRefreshTokenRepository;
+import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Services.AuthUserMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
+@RequiredArgsConstructor
 public class AuthUserMgmtController {
 
 	@Autowired
@@ -28,12 +38,67 @@ public class AuthUserMgmtController {
 	@Autowired
 	private AuthJwtUtil authJwtUtil;
 
+	@Autowired
+	private AuthUserRepository authUserRepository;
+
+	@Autowired
+	private AuthUserRefreshTokenRepository authUserRefreshTokenRepository;
+
+	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse<AuthUserDTO>> createAuthUser(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+
+			@Valid @ModelAttribute AuthUserRequest authUserInfo,
+			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
+		try {
+			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAuthUser(actionByUserId, authUserInfo,
+					authUserImage);
+
+			if ("required".equals(response.getStatus()) || "weak password".equals(response.getStatus())
+					|| "invalid password".equals(response.getStatus())) {
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@PostMapping("/create-account")
+	public ResponseEntity<ApiResponse<AuthUserDTO>> createAccount(
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@Valid @ModelAttribute AuthUserRequest authUserInfo) {
+		try {
+			authJwtUtil.verifyAuthUser(apiKey, apiSecret);
+
+			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAccount(authUserInfo);
+
+			if ("required".equals(response.getStatus()) || "weak password".equals(response.getStatus())
+					|| "invalid password".equals(response.getStatus())) {
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthTokenResponse>> loginAuthUser(
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-
-			@ModelAttribute RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request) {
+			@RequestBody RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request) {
 		try {
 			authJwtUtil.verifyAuthUser(apiKey, apiSecret);
 
@@ -55,31 +120,51 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ApiResponse<AuthUserDTO>> createAuthUser(
-			@RequestHeader(value = "authToken", required = false) String authToken,
+	@PostMapping("/refresh-token")
+	public ResponseEntity<ApiResponse<AuthTokenResponse>> refreshToken(
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestBody RefreshTokenRequest request) {
 
-			@ModelAttribute AuthUserRequest authUserInfo,
-			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
-		try {
-			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+		authJwtUtil.verifyAuthUser(apiKey, apiSecret);
 
-			ApiResponse<AuthUserDTO> response = authUserMgmtService.createAuthUser(actionByUserId, authUserInfo,
-					authUserImage);
+		long authUserId = authJwtUtil.extractAuthUserId(request.getRefreshToken(), apiKey, apiSecret);
 
-			if ("required".equals(response.getStatus()) || "weak password".equals(response.getStatus())
-					|| "invalid password".equals(response.getStatus())) {
-				return ResponseEntity.badRequest().body(response);
-			}
+		AuthUserRefreshTokenModel tokenEntity = authUserRefreshTokenRepository
+				.findByRefreshTokenAndIsRevokedFalse(request.getRefreshToken())
+				.orElseThrow(() -> new SecurityException("Invalid refresh token"));
 
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		if (tokenEntity.getExpiryDate().isBefore(Instant.now())) {
+			tokenEntity.setRevoked(true);
+			authUserRefreshTokenRepository.save(tokenEntity);
+			throw new SecurityException("Refresh token expired");
 		}
+
+		AuthUserModel user = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new SecurityException("User not found"));
+
+		String newAccessToken = authJwtUtil.generateAccessToken(user.getAuthUserEmailAddress(), authUserId);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Access token refreshed",
+				new AuthTokenResponse(newAccessToken, request.getRefreshToken())));
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<ApiResponse<String>> logout(
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestBody LogoutRequest request) {
+
+		authJwtUtil.verifyAuthUser(apiKey, apiSecret);
+
+		AuthUserRefreshTokenModel token = authUserRefreshTokenRepository
+				.findByRefreshTokenAndIsRevokedFalse(request.getRefreshToken())
+				.orElseThrow(() -> new SecurityException("Invalid refresh token"));
+
+		token.setRevoked(true);
+		authUserRefreshTokenRepository.save(token);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Logged out successfully", null));
 	}
 
 	@PostMapping("/upload-image")

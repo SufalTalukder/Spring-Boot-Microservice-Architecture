@@ -52,7 +52,7 @@ public class AuthUserModel {
 	private AuthUserActive authUserActive;
 
 	public enum AuthUserActive {
-		YES, NO
+		YES, ON_HOLD, NO
 	}
 
 	@Enumerated(EnumType.STRING)

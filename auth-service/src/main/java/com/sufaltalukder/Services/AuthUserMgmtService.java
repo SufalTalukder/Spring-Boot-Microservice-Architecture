@@ -13,12 +13,14 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 public interface AuthUserMgmtService {
 
 	ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request);
 
-	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, AuthUserRequest authUserInfo, MultipartFile authUserImage);
+	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, @Valid AuthUserRequest authUserInfo,
+			MultipartFile authUserImage);
 
 	ApiResponse<List<AuthUserDTO>> getAllAuthUsers();
 
@@ -38,5 +40,7 @@ public interface AuthUserMgmtService {
 	ApiResponse<Void> deleteAllAuthUsers(long authUserId, List<Long> rqstAuthUserIds);
 
 	ApiResponse<String> uploadImage(long authUserId, MultipartFile file);
+
+	ApiResponse<AuthUserDTO> createAccount(@Valid AuthUserRequest authUserInfo);
 
 }
