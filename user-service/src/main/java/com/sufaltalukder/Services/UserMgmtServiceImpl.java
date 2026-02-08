@@ -21,7 +21,11 @@ import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserMgmtServiceImpl implements UserMgmtService {
 
 	@Autowired
@@ -36,7 +40,7 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 	private final String UPLOAD_DIR = "uploads";
 
 	@Override
-	public ApiResponse<UserDTO> createUser(long authUserId, UserRequest userInfo, MultipartFile userImage) {
+	public ApiResponse<UserDTO> createUser(long authUserId, @Valid UserRequest userInfo, MultipartFile userImage) {
 
 		// Check if phone number already exists
 		List<UserModel> existingUsers = userRepository.findByPhoneNumber(userInfo.getPhoneNumber());
@@ -155,7 +159,7 @@ public class UserMgmtServiceImpl implements UserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<UserDTO> updateUserDetail(long authUserId, long userId, UserRequest userInfo,
+	public ApiResponse<UserDTO> updateUserDetail(long authUserId, long userId, @Valid UserRequest userInfo,
 			MultipartFile userImage) {
 
 		UserModel existingUser = userRepository.findUserDetailsByAuth(userId);

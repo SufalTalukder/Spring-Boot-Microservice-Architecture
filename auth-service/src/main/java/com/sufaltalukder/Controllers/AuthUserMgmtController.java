@@ -308,7 +308,7 @@ public class AuthUserMgmtController {
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 
-			@RequestParam long authUserId, @ModelAttribute AuthUserRequest authUserInfo,
+			@RequestParam long authUserId, @Valid @ModelAttribute AuthUserRequest authUserInfo,
 			@RequestPart(value = "authUserImage", required = false) MultipartFile authUserImage) {
 		try {
 			long actionByUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);

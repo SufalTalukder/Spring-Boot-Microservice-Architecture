@@ -13,8 +13,12 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Services.UserMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
+@RequiredArgsConstructor
 public class UserMgmtController {
 
 	@Autowired
@@ -28,8 +32,7 @@ public class UserMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
-
-			@ModelAttribute UserRequest userInfo,
+			@Valid @ModelAttribute UserRequest userInfo,
 			@RequestPart(value = "userImage", required = false) MultipartFile userImage) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
@@ -120,8 +123,7 @@ public class UserMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
-
-			@ModelAttribute UserRequest userInfo,
+			@Valid @ModelAttribute UserRequest userInfo,
 			@RequestPart(value = "userImage", required = false) MultipartFile userImage) {
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);

@@ -5,21 +5,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.ActionLogDTO;
+import com.sufaltalukder.DTOs.ActionLogRequest;
 import com.sufaltalukder.Mappers.ActionLogMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Repositories.ActionLogRepository;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ActionLogMgmtServiceImpl implements ActionLogMgmtService {
 
 	@Autowired
 	private ActionLogRepository actionLogRepository;
 
 	@Override
-	public ApiResponse<ActionLogDTO> addActionLog(ActionLogModel actionLogModel) {
+	public ApiResponse<ActionLogDTO> addActionLog(@Valid ActionLogRequest actionLogRequest) {
 
-		ActionLogModel saved = actionLogRepository.save(actionLogModel);
+		ActionLogModel savingData = new ActionLogModel();
+		savingData.setActionByAuthUserId(actionLogRequest.getActionByAuthUserId());
+		savingData.setAuthUserId(actionLogRequest.getAuthUserId());
+		savingData.setUserId(actionLogRequest.getUserId());
+		savingData.setActionLogMethod(actionLogRequest.getActionLogMethod());
+		savingData.setActionLogMessage(actionLogRequest.getActionLogMessage());
+
+		ActionLogModel saved = actionLogRepository.save(savingData);
 
 		return new ApiResponse<>("success", "Action log added successfully.", ActionLogMapper.toDTO(saved));
 	}

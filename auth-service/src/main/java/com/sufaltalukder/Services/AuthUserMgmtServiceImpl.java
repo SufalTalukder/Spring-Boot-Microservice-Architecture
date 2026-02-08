@@ -320,8 +320,8 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	}
 
 	@Override
-	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserRequest authUserInfo,
-			MultipartFile authUserImage) {
+	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId,
+			@Valid AuthUserRequest authUserInfo, MultipartFile authUserImage) {
 
 		Optional<AuthUserModel> optionalUser = authUserRepository.findById(authUserId);
 

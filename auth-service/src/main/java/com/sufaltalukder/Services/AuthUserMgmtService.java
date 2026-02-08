@@ -32,7 +32,7 @@ public interface AuthUserMgmtService {
 
 	ApiResponse<AuthLoginAuditDTO> getAuthUserLoginAuditDetails(long authLoginAuditId);
 
-	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, AuthUserRequest authUserInfo,
+	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, @Valid AuthUserRequest authUserInfo,
 			MultipartFile authUserImage);
 
 	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId);

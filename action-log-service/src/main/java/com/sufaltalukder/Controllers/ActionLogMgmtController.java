@@ -7,13 +7,17 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.ActionLogDTO;
-import com.sufaltalukder.Models.ActionLogModel;
+import com.sufaltalukder.DTOs.ActionLogRequest;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Services.ActionLogMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
+@RequiredArgsConstructor
 public class ActionLogMgmtController {
 
 	@Autowired
@@ -23,9 +27,10 @@ public class ActionLogMgmtController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/add-action-log")
-	public ResponseEntity<ApiResponse<ActionLogDTO>> addActionLog(@RequestBody ActionLogModel actionLogModel) {
+	public ResponseEntity<ApiResponse<ActionLogDTO>> addActionLog(
+			@Valid @RequestBody ActionLogRequest actionLogRequest) {
 
-		ApiResponse<ActionLogDTO> response = actionLogMgmtService.addActionLog(actionLogModel);
+		ApiResponse<ActionLogDTO> response = actionLogMgmtService.addActionLog(actionLogRequest);
 
 		return ResponseEntity.ok(response);
 	}
