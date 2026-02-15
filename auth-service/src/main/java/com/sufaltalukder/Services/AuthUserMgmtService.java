@@ -4,27 +4,43 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
+import com.sufaltalukder.DTOs.AuthUserRequest;
+import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthTokenResponse;
-import com.sufaltalukder.Models.AuthUserModel;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 public interface AuthUserMgmtService {
 
-	ApiResponse<AuthTokenResponse> loginAuthUser(String authUserEmailAddress, String authUserPassword);
+	ApiResponse<AuthTokenResponse> loginAuthUser(RequestAuthLoginDTO requestAuthLoginDTO, HttpServletRequest request);
 
-	ApiResponse<AuthUserDTO> createAuthUser(AuthUserModel authUserInfo);
+	ApiResponse<AuthUserDTO> createAuthUser(long authUserId, @Valid AuthUserRequest authUserInfo,
+			MultipartFile authUserImage);
 
 	ApiResponse<List<AuthUserDTO>> getAllAuthUsers();
 
-	ApiResponse<AuthUserDTO> getAuthUser(long authUserId);
+	ApiResponse<AuthResponseDTO> getAuthUser(long authUserId);
 
-	ApiResponse<AuthUserDTO> updateAuthUser(AuthUserModel authUserInfo);
+	ApiResponse<AuthUserDTO> getAuthUserDetails(long authUserId);
 
-	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId);
+	ApiResponse<List<AuthLoginAuditDTO>> getAuthUserLoginAudits();
 
-	ApiResponse<Void> deleteAllAuthUsers(List<Long> authUserIds);
+	ApiResponse<AuthLoginAuditDTO> getAuthUserLoginAuditDetails(long authLoginAuditId);
+
+	ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId, @Valid AuthUserRequest authUserInfo,
+			MultipartFile authUserImage);
+
+	ApiResponse<AuthUserDTO> deleteAuthUser(long authUserId, long rqstAuthUserId);
+
+	ApiResponse<Void> deleteAllAuthUsers(long authUserId, List<Long> rqstAuthUserIds);
 
 	ApiResponse<String> uploadImage(long authUserId, MultipartFile file);
+
+	ApiResponse<AuthUserDTO> createAccount(@Valid AuthUserRequest authUserInfo);
 
 }
