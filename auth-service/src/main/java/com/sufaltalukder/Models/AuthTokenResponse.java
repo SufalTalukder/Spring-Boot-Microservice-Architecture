@@ -5,11 +5,9 @@ import lombok.Data;
 @Data
 public class AuthTokenResponse {
 
-	private String accessToken;
-	private String refreshToken;
+	private String authToken;
 
-	public AuthTokenResponse(String accessToken, String refreshToken) {
-		this.accessToken = accessToken;
-		this.refreshToken = refreshToken;
+	public AuthTokenResponse(String authToken) {
+		this.authToken = authToken;
 	}
 }
