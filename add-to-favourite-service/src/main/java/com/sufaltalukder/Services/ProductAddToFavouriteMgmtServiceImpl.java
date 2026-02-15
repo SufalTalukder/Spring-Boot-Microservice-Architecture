@@ -77,19 +77,89 @@ public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouri
 	}
 
 	@Override
-	public ApiResponse<List<ProductAddToFavouriteDTO>> getUserFavourites() {
+	public ApiResponse<List<ProductAddToFavouriteDTO>> getAllUserFavourites(Long userId, Long productId) {
 
 		List<ProductAddToFavouriteModel> filteredFavourites = productAddToFavouriteRepository
-				.findUsersFavouritesByAuth();
+				.findUsersFavouritesByFilters((userId != null && userId > 0) ? userId : null,
+						(productId != null && productId > 0) ? productId : null);
 
-		if (filteredFavourites.isEmpty()) {
+		if (filteredFavourites == null || filteredFavourites.isEmpty()) {
 			return new ApiResponse<>("not found", "No favourite(s) list found", null);
 		}
 
 		List<ProductAddToFavouriteDTO> dtos = filteredFavourites.stream().map(ProductAddToFavouriteMapper::toDTO)
 				.toList();
 
-		return new ApiResponse<>("success", "Products fetched successfully.", dtos);
+		return new ApiResponse<>("success", "All favourite(s) fetched successfully.", dtos);
+	}
+
+	@Override
+	public ApiResponse<ProductAddToFavouriteDTO> getUserFavourite(long authUserId, long addToFavouriteId, long userId) {
+
+		ProductAddToFavouriteModel favourite = productAddToFavouriteRepository.findByIdAndUserId(addToFavouriteId,
+				userId);
+
+		if (favourite == null) {
+			return new ApiResponse<>("error", "Favourite not found", null);
+		}
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.GET);
+		actionLogData.setActionLogMessage("User favourite fetched successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "User favourite fetched successfully.",
+				ProductAddToFavouriteMapper.toDTO(favourite));
+	}
+
+	@Override
+	public ApiResponse<ProductAddToFavouriteDTO> updateUserFavourite(long authUserId, long addToFavouriteId,
+			long userId, long productId) {
+
+		// Fetch existing favourite
+		ProductAddToFavouriteModel existingFavourite = productAddToFavouriteRepository
+				.findByIdAndUserId(addToFavouriteId, userId);
+
+		if (existingFavourite == null) {
+			return new ApiResponse<>("error", "Favourite not found.", null);
+		}
+
+		// Prevent duplicate product in favourites
+		long duplicateCount = productAddToFavouriteRepository.countByUserIdAndProductId(userId, productId);
+
+		if (duplicateCount > 0 && existingFavourite.getProductInfo().getProductId() != productId) {
+
+			return new ApiResponse<>("exist", "Product already added into favourite list!", null);
+		}
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
+		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+		ProductModel product = productRepository.findById(productId)
+				.orElseThrow(() -> new RuntimeException("Product not found"));
+
+		existingFavourite.setAuthUserInfo(authUser);
+		existingFavourite.setUserInfo(user);
+		existingFavourite.setProductInfo(product);
+
+		ProductAddToFavouriteModel savedData = productAddToFavouriteRepository.save(existingFavourite);
+
+		// Log action
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
+		actionLogData.setActionLogMessage("User favourite updated successfully.");
+
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "User favourite updated successfully.",
+				ProductAddToFavouriteMapper.toDTO(savedData));
 	}
 
 	@Override

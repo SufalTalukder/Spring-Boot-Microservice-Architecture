@@ -49,17 +49,75 @@ public class ProductAddToFavouriteMgmtController {
 	}
 
 	@GetMapping("/get-all-user-favourites")
-	public ResponseEntity<ApiResponse<List<ProductAddToFavouriteDTO>>> getUserFavourites(
+	public ResponseEntity<ApiResponse<List<ProductAddToFavouriteDTO>>> getAllUserFavourites(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
-			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam(value = "userId", required = false) Long userId,
+			@RequestParam(value = "productId", required = false) Long productId) {
+
 		try {
 			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<List<ProductAddToFavouriteDTO>> response = productAddToFavouriteMgmtService.getUserFavourites();
+			ApiResponse<List<ProductAddToFavouriteDTO>> response = productAddToFavouriteMgmtService
+					.getAllUserFavourites(userId, productId);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-user-favourite")
+	public ResponseEntity<ApiResponse<ProductAddToFavouriteDTO>> getUserFavourite(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long addToFavouriteId, @RequestParam long userId) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<ProductAddToFavouriteDTO> response = productAddToFavouriteMgmtService
+					.getUserFavourite(authUserId, addToFavouriteId, userId);
+
+			if ("error".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@PutMapping("/update-user-favourite")
+	public ResponseEntity<ApiResponse<ProductAddToFavouriteDTO>> updateUserFavourite(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long addToFavouriteId, @RequestParam long userId, @RequestParam long productId) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<ProductAddToFavouriteDTO> response = productAddToFavouriteMgmtService
+					.updateUserFavourite(authUserId, addToFavouriteId, userId, productId);
+
+			if ("error".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			if ("exist".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 			}
 
 			return ResponseEntity.ok(response);

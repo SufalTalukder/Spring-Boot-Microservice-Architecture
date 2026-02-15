@@ -8,7 +8,8 @@ import io.jsonwebtoken.*;
 public class AuthJwtUtil {
 
 	private final String SECRET_KEY = "AUTH-USER-ETPL-MAC-LTP-033-SUFAL-0309-ESOLZ-MACOS-11.7.1-Big-Sur-C2VNC0NGG085-1.4-GHz-Dual-Core-Intel-Core-i5";
-	private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 5 minutes
+	private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 15; // 15 min
+	private final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 	public static final String API_KEY_HEADER = "x-api-key";
 	public static final String API_SECRET_HEADER = "x-api-secret";
@@ -16,10 +17,15 @@ public class AuthJwtUtil {
 	private static final String VALID_API_KEY = "20912119727";
 	private static final String VALID_API_SECRET = "SufalTalukder70";
 
-	public String generateToken(String authUserEmailAddress, long authUserId) {
-		return Jwts.builder().setSubject(authUserEmailAddress).claim("authUserId", authUserId)
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+	public String generateAccessToken(String email, long userId) {
+		return Jwts.builder().setSubject(email).claim("authUserId", userId).claim("type", "ACCESS")
+				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+				.signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+	}
+
+	public String generateRefreshToken(long userId) {
+		return Jwts.builder().claim("authUserId", userId).claim("type", "REFRESH").setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
 				.signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
 	}
 
@@ -69,5 +75,18 @@ public class AuthJwtUtil {
 		} catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
 			throw new SecurityException("Invalid JWT token", e);
 		}
+	}
+
+	public String verifyAuthUser(String apiKey, String apiSecret) {
+
+		if (apiKey == null || !VALID_API_KEY.equals(apiKey)) {
+			throw new SecurityException("Invalid or missing x-api-key");
+		}
+
+		if (apiSecret == null || !VALID_API_SECRET.equals(apiSecret)) {
+			throw new SecurityException("Invalid or missing x-api-secret");
+		}
+
+		return "ok";
 	}
 }

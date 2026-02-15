@@ -2,7 +2,6 @@ package com.sufaltalukder.Repositories;
 
 import java.util.*;
 
-import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +15,7 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
 			    SELECT p FROM ProductModel p
 			    LEFT JOIN p.languageInfo l
 			    LEFT JOIN p.subCategoryInfo s
-			    LEFT JOIN p.categorInfo c
+			    LEFT JOIN p.categoryInfo c
 			    WHERE LOWER(p.productName) LIKE LOWER(CONCAT('%', :q, '%'))
 			       OR LOWER(p.productBrand) LIKE LOWER(CONCAT('%', :q, '%'))
 			       OR CAST(p.productCode AS string) LIKE CONCAT('%', :q, '%')
@@ -32,12 +31,6 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
 	ProductModel findByProductName(String productName);
 
 	List<ProductModel> findByProductNameIn(List<String> productNames);
-
-	Page<ProductModel> findByLanguageId(Long languageId, Pageable pageable);
-
-	Page<ProductModel> findByCategoryId(Long categoryId, Pageable pageable);
-
-	Page<ProductModel> findBySubCategoryId(Long subCategoryId, Pageable pageable);
 
 	Optional<ProductModel> findByProductId(long productId);
 

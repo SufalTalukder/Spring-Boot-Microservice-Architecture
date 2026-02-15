@@ -26,20 +26,38 @@ public interface ProductAddToFavouriteRepository extends JpaRepository<ProductAd
 	Page<ProductAddToFavouriteModel> findByUserId(@Param("userId") long userId, Pageable pageable);
 
 	@Query("""
-				SELECT fm
-				FROM ProductAddToFavouriteModel fm
-				LEFT JOIN FETCH fm.authUserInfo
-				LEFT JOIN FETCH fm.userInfo
-				LEFT JOIN FETCH fm.productInfo
-			""")
-	List<ProductAddToFavouriteModel> findUsersFavouritesByAuth();
-
-	@Query("""
 			    SELECT COUNT(f)
 			    FROM ProductAddToFavouriteModel f
 			    WHERE f.userInfo.userId = :userId
 			      AND f.productInfo.productId = :productId
 			""")
 	long findCustomerByProductId(@Param("productId") long productId, @Param("userId") long userId);
+
+	@Query("""
+			    SELECT fm
+			    FROM ProductAddToFavouriteModel fm
+			    WHERE (:userId IS NULL OR fm.userInfo.userId = :userId)
+			      AND (:productId IS NULL OR fm.productInfo.productId = :productId)
+			    ORDER BY fm.favouriteCreatedAt DESC
+			""")
+	List<ProductAddToFavouriteModel> findUsersFavouritesByFilters(@Param("userId") Long userId,
+			@Param("productId") Long productId);
+
+	@Query("""
+				 SELECT fm
+				 FROM ProductAddToFavouriteModel fm
+				 WHERE fm.addToFavouriteId = :addToFavouriteId
+				 AND fm.userInfo.userId = :userId
+			""")
+	ProductAddToFavouriteModel findByIdAndUserId(@Param("addToFavouriteId") long addToFavouriteId,
+			@Param("userId") long userId);
+
+	@Query("""
+				 SELECT COUNT(fm)
+				 FROM ProductAddToFavouriteModel fm
+				 WHERE fm.userInfo.userId = :userId
+				 AND fm.productInfo.productId = :productId
+			""")
+	long countByUserIdAndProductId(@Param("userId") long userId, @Param("productId") long productId);
 
 }

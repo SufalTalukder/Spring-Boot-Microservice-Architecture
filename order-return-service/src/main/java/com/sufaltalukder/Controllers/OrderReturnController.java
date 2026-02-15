@@ -24,10 +24,13 @@ public class OrderReturnController {
 	private AuthJwtUtil authJwtUtil;
 
 	@PostMapping("/create")
-	public ResponseEntity<ApiResponse<OrderReturnDTO>> createUserOrderReturn(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<OrderReturnDTO>> createUserOrderReturn(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestBody OrderReturnModel orderReturnModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			orderReturnModel.setAuthUserId(authUserId);
 
 			ApiResponse<OrderReturnDTO> response = orderReturnService.createUserOrderReturn(orderReturnModel);
@@ -47,10 +50,13 @@ public class OrderReturnController {
 	}
 
 	@GetMapping("/read")
-	public ResponseEntity<ApiResponse<OrderReturnDTO>> getUserOrderReturn(@RequestHeader String authToken,
+	public ResponseEntity<ApiResponse<OrderReturnDTO>> getUserOrderReturn(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
 			@RequestParam long orderReturnId) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			ApiResponse<OrderReturnDTO> response = orderReturnService.getUserOrderReturn(orderReturnId);
 
 			if ("not found".equals(response.getStatus())) {
@@ -66,12 +72,14 @@ public class OrderReturnController {
 
 	@GetMapping("/read-all/user-returns")
 	public ResponseEntity<PaginationApiResponse<List<OrderReturnDTO>>> getUserAllOrderReturns(
-			@RequestHeader("authToken") String authToken, @RequestParam long userId,
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
 			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize,
 			@RequestParam(defaultValue = "orderReturnId") String sortBy,
 			@RequestParam(defaultValue = "asc") String sortDir) {
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			PaginationApiResponse<List<OrderReturnDTO>> response = orderReturnService.getUserAllOrderReturns(userId,
 					pageNo, pageSize, sortBy, sortDir);
 
@@ -88,11 +96,13 @@ public class OrderReturnController {
 
 	@GetMapping("/read-all")
 	public ResponseEntity<PaginationApiResponse<List<OrderReturnDTO>>> getAllUserOrderReturn(
-			@RequestHeader("authToken") String authToken, @RequestParam(defaultValue = "1") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
 
 		try {
-			authJwtUtil.extractAuthUserId(authToken);
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			PaginationApiResponse<List<OrderReturnDTO>> response = orderReturnService.getAllUserOrderReturn(pageNo,
 					pageSize);
 
@@ -108,10 +118,13 @@ public class OrderReturnController {
 	}
 
 	@PatchMapping("/update")
-	public ResponseEntity<ApiResponse<OrderReturnDTO>> updateUserOrderReturn(@RequestHeader String authToken,
-			@RequestParam long orderReturnId, @RequestBody OrderReturnModel orderReturnModel) {
+	public ResponseEntity<ApiResponse<OrderReturnDTO>> updateUserOrderReturn(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long orderReturnId,
+			@RequestBody OrderReturnModel orderReturnModel) {
 		try {
-			long authUserId = authJwtUtil.extractAuthUserId(authToken);
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 			orderReturnModel.setAuthUserId(authUserId);
 
 			ApiResponse<OrderReturnDTO> response = orderReturnService.updateUserOrderReturn(orderReturnId,

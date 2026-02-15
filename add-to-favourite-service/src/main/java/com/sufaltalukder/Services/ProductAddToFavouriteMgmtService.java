@@ -9,7 +9,12 @@ public interface ProductAddToFavouriteMgmtService {
 
 	ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(long authUserId, long userId, long productId);
 
-	ApiResponse<List<ProductAddToFavouriteDTO>> getUserFavourites();
+	ApiResponse<List<ProductAddToFavouriteDTO>> getAllUserFavourites(Long userId, Long productId);
+
+	ApiResponse<ProductAddToFavouriteDTO> getUserFavourite(long authUserId, long addToFavouriteId, long userId);
+
+	ApiResponse<ProductAddToFavouriteDTO> updateUserFavourite(long authUserId, long addToFavouriteId, long userId,
+			long productId);
 
 	ApiResponse<Void> removeUserFavourite(long authUserId, long addToFavouriteId, long userId);
 

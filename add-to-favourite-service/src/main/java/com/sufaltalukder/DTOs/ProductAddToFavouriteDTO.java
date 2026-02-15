@@ -2,10 +2,6 @@ package com.sufaltalukder.DTOs;
 
 import java.time.ZonedDateTime;
 
-import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.ProductModel;
-import com.sufaltalukder.Models.UserModel;
-
 import lombok.*;
 
 @Data
@@ -14,8 +10,9 @@ import lombok.*;
 public class ProductAddToFavouriteDTO {
 
 	private long addToFavouriteId;
-	private AuthUserModel authUserInfo;
-	private UserModel userInfo;
-	private ProductModel productInfo;
+	private AuthResponseDTO authUserInfo;
+	private UserDTO userInfo;
+	private ProductDTO productInfo;
 	private ZonedDateTime favouriteCreatedAt;
+
 }
