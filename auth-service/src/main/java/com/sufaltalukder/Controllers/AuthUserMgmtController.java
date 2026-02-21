@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthPermissionDTO;
+import com.sufaltalukder.DTOs.AuthPermissionRequest;
 import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
@@ -361,6 +363,51 @@ public class AuthUserMgmtController {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<Void> response = authUserMgmtService.deleteAllAuthUsers(authUserId, rqstAuthUserIds);
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	// Authorised user's permission APIs
+	@PostMapping("/grant-permission")
+	public ResponseEntity<ApiResponse<AuthPermissionDTO>> grantAuthPermission(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@Valid @RequestBody AuthPermissionRequest authPermissionRequest) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<AuthPermissionDTO> response = authUserMgmtService.grantAuthPermission(authUserId,
+					authPermissionRequest);
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
+
+	@GetMapping("/get-auths-all-permissions")
+	public ResponseEntity<ApiResponse<List<AuthPermissionDTO>>> getAuthsAllPermissions(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret) {
+
+		try {
+			authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<List<AuthPermissionDTO>> response = authUserMgmtService.getAuthsAllPermissions();
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

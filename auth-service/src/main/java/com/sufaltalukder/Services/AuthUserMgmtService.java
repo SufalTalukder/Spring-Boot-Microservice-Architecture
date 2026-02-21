@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthPermissionDTO;
+import com.sufaltalukder.DTOs.AuthPermissionRequest;
 import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
@@ -42,5 +44,10 @@ public interface AuthUserMgmtService {
 	ApiResponse<String> uploadImage(long authUserId, MultipartFile file);
 
 	ApiResponse<AuthUserDTO> createAccount(@Valid AuthUserRequest authUserInfo);
+
+	ApiResponse<AuthPermissionDTO> grantAuthPermission(long authUserId,
+			@Valid AuthPermissionRequest authPermissionRequest);
+
+	ApiResponse<List<AuthPermissionDTO>> getAuthsAllPermissions();
 
 }

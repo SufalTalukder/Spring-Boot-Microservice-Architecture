@@ -13,21 +13,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sufaltalukder.DTOs.AuthLoginAuditDTO;
+import com.sufaltalukder.DTOs.AuthPermissionDTO;
+import com.sufaltalukder.DTOs.AuthPermissionRequest;
 import com.sufaltalukder.DTOs.AuthResponseDTO;
 import com.sufaltalukder.DTOs.AuthUserDTO;
 import com.sufaltalukder.DTOs.AuthUserRequest;
 import com.sufaltalukder.DTOs.RequestAuthLoginDTO;
 import com.sufaltalukder.Mappers.AuthLoginAuditMapper;
+import com.sufaltalukder.Mappers.AuthPermissionMapper;
 import com.sufaltalukder.Mappers.AuthUserMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthLoginAuditModel;
+import com.sufaltalukder.Models.AuthPermissionModel;
+import com.sufaltalukder.Models.AuthPermissionModel.PermissionStatus;
 import com.sufaltalukder.Models.AuthTokenResponse;
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.AuthUserModel.AuthUserActive;
 import com.sufaltalukder.Models.AuthUserRefreshTokenModel;
 import com.sufaltalukder.Repositories.AuthLoginAuditRepository;
+import com.sufaltalukder.Repositories.AuthPermissionRepository;
 import com.sufaltalukder.Repositories.AuthUserRefreshTokenRepository;
 import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Utils.AuthInfoUtil;
@@ -52,6 +58,9 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 	@Autowired
 	private AuthUserRefreshTokenRepository authUserRefreshTokenRepository;
+
+	@Autowired
+	private AuthPermissionRepository authPermissionRepository;
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
@@ -99,6 +108,19 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 			savedUser.setAuthUserImage(imageName);
 			authUserRepository.save(savedUser);
 		}
+
+		// Authorisation permission set by default
+		AuthPermissionModel storingData = new AuthPermissionModel();
+
+		storingData.setAuthUserInfo(savedUser);
+		storingData.setActionByUserId(actionByUserId);
+		storingData.setAddPermission(PermissionStatus.NO);
+		storingData.setViewAllPermission(PermissionStatus.NO);
+		storingData.setViewPermission(PermissionStatus.NO);
+		storingData.setEditPermission(PermissionStatus.NO);
+		storingData.setDeletePermission(PermissionStatus.NO);
+
+		authPermissionRepository.save(storingData);
 
 		// Action log
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -354,6 +376,19 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 
 		AuthUserModel updatedUser = authUserRepository.save(user);
 
+		// Authorisation permission set by default
+		AuthPermissionModel storingData = new AuthPermissionModel();
+
+		storingData.setAuthUserInfo(updatedUser);
+		storingData.setActionByUserId(actionByUserId);
+		storingData.setAddPermission(PermissionStatus.NO);
+		storingData.setViewAllPermission(PermissionStatus.NO);
+		storingData.setViewPermission(PermissionStatus.NO);
+		storingData.setEditPermission(PermissionStatus.NO);
+		storingData.setDeletePermission(PermissionStatus.NO);
+
+		authPermissionRepository.save(storingData);
+
 		// Action log
 		ActionLogModel log = new ActionLogModel();
 		log.setActionByAuthUserId(actionByUserId);
@@ -468,5 +503,59 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		return new ApiResponse<>("success", "Account created successfully.", AuthUserMapper.toDTO(savedUser));
+	}
+
+	@Override
+	public ApiResponse<AuthPermissionDTO> grantAuthPermission(long authUserId,
+			@Valid AuthPermissionRequest authPermissionRequest) {
+
+		AuthUserModel authUser = authUserRepository.findById(authUserId)
+				.orElseThrow(() -> new RuntimeException("Auth user not found"));
+
+		Optional<AuthPermissionModel> existingPermission = authPermissionRepository
+				.findByAuthPermissionId(authPermissionRequest.getAuthPermissionId());
+
+		AuthPermissionModel storingData;
+
+		if (existingPermission.isPresent()) {
+			storingData = existingPermission.get();
+		} else {
+			storingData = new AuthPermissionModel();
+			storingData.setAuthUserInfo(authUser);
+		}
+
+		storingData.setActionByUserId(authUserId);
+		storingData.setAddPermission(authPermissionRequest.getAddPermission());
+		storingData.setViewAllPermission(authPermissionRequest.getViewAllPermission());
+		storingData.setViewPermission(authPermissionRequest.getViewPermission());
+		storingData.setEditPermission(authPermissionRequest.getEditPermission());
+		storingData.setDeletePermission(authPermissionRequest.getDeletePermission());
+
+		AuthPermissionModel savedData = authPermissionRepository.save(storingData);
+
+		// Action log
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.POST);
+		actionLogData.setActionLogMessage("Auth permission saved successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "Auth permission saved successfully.",
+				AuthPermissionMapper.toDTO(savedData));
+	}
+
+	@Override
+	public ApiResponse<List<AuthPermissionDTO>> getAuthsAllPermissions() {
+
+		List<AuthPermissionModel> fetchAuthsAllPermissions = authPermissionRepository.findAllPermissions();
+
+		if (fetchAuthsAllPermissions.isEmpty()) {
+			return new ApiResponse<>("not found", "Auths permission(s) not found.", null);
+		}
+
+		List<AuthPermissionDTO> dtos = fetchAuthsAllPermissions.stream().map(AuthPermissionMapper::toDTO).toList();
+
+		return new ApiResponse<>("success", "Auths permission(s) fetched successfully.", dtos);
 	}
 }
