@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.NewsletterDTO;
+import com.sufaltalukder.DTOs.NewsletterRequest;
 import com.sufaltalukder.Mappers.NewsletterMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
@@ -17,6 +18,8 @@ import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.NewsletterRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
+
+import jakarta.validation.Valid;
 
 @Service
 public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
@@ -34,10 +37,10 @@ public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
 	private ActionLogFeignService actionLogFeignService; // Via feign client
 
 	@Override
-	public ApiResponse<NewsletterDTO> createNewsletterToggle(long authUserId, long userId,
-			NewsletterModel newsletterModel) {
+	public ApiResponse<NewsletterDTO> createNewsletterToggle(long authUserId,
+			@Valid NewsletterRequest newsletterRequest) {
 
-		long newsletterCount = newsletterRepository.existsNewsletterByUserId(userId);
+		long newsletterCount = newsletterRepository.existsNewsletterByUserId(newsletterRequest.getUserId());
 
 		if (newsletterCount > 0) {
 			return new ApiResponse<>("exist", "Newsletter already exists for this user.", null);
@@ -46,12 +49,13 @@ public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
-		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+		UserModel user = userRepository.findById(newsletterRequest.getUserId())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		NewsletterModel savingData = new NewsletterModel();
 		savingData.setAuthUserInfo(authUser);
 		savingData.setUserInfo(user);
-		savingData.setNewsletterToggle(newsletterModel.getNewsletterToggle());
+		savingData.setNewsletterToggle(newsletterRequest.getNewsletterToggle());
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
@@ -103,8 +107,8 @@ public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
 	}
 
 	@Override
-	public ApiResponse<NewsletterDTO> updateNewsletterToggle(long newsletterId, long authUserId, long userId,
-			String newsletterToggle) {
+	public ApiResponse<NewsletterDTO> updateNewsletterToggle(long newsletterId, long authUserId,
+			@Valid NewsletterRequest newsletterRequest) {
 
 		Optional<NewsletterModel> isNewsletterIdExist = newsletterRepository.findById(newsletterId);
 
@@ -115,12 +119,13 @@ public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
 		AuthUserModel authUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
-		UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+		UserModel user = userRepository.findById(newsletterRequest.getUserId())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		NewsletterModel updatingData = isNewsletterIdExist.get();
 		updatingData.setAuthUserInfo(authUser);
 		updatingData.setUserInfo(user);
-		updatingData.setNewsletterToggle(newsletterToggle);
+		updatingData.setNewsletterToggle(newsletterRequest.getNewsletterToggle());
 
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();

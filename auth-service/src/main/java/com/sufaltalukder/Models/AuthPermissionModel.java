@@ -13,8 +13,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "auth_permission_tbl", indexes = {
-		@Index(name = "idx_auth_permission_user_id", columnList = "auth_user_id") }, uniqueConstraints = {
-				@UniqueConstraint(name = "uk_auth_permission_user_id", columnNames = "auth_user_id") })
+		@Index(name = "idx_auth_permission_user_id", columnList = "auth_user_id") })
 public class AuthPermissionModel {
 
 	@Id
@@ -25,8 +24,9 @@ public class AuthPermissionModel {
 	@JoinColumn(name = "auth_user_id", nullable = false)
 	private AuthUserModel authUserInfo;
 
-	@Column(name = "action_by_user_id", nullable = false)
-	private long actionByUserId;
+	@ManyToOne
+	@JoinColumn(name = "action_by_user_id", nullable = false)
+	private AuthUserModel actionByUserInfo;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "add_permission", nullable = false)

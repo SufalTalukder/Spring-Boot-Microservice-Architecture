@@ -1,9 +1,8 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
-import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.UserModel;
+import com.sufaltalukder.Models.NewsletterModel.NewsletterToggle;
 
 import lombok.*;
 
@@ -13,9 +12,10 @@ import lombok.*;
 public class NewsletterDTO {
 
 	private long newsletterId;
-	private AuthUserModel authUserInfo;
-	private UserModel userInfo;
-	private String newsletterToggle;
-	private ZonedDateTime newsletterCreatedAt;
-	private ZonedDateTime newsletterUpdatedAt;
+	private AuthUserDTO authUserInfo;
+	private UserDTO userInfo;
+	private NewsletterToggle newsletterToggle;
+	private Instant newsletterCreatedAt;
+	private Instant newsletterUpdatedAt;
+
 }

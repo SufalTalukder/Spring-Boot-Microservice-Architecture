@@ -7,13 +7,17 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.NewsletterDTO;
+import com.sufaltalukder.DTOs.NewsletterRequest;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.NewsletterModel;
 import com.sufaltalukder.Services.NewsletterMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/elastic/auth")
+@RequiredArgsConstructor
 public class NewsletterMgmtController {
 
 	@Autowired
@@ -26,14 +30,14 @@ public class NewsletterMgmtController {
 	public ResponseEntity<ApiResponse<NewsletterDTO>> createNewsletterToggle(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
-			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
-			@RequestBody NewsletterModel newsletterModel) {
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@Valid @RequestBody NewsletterRequest newsletterRequest) {
 
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
-			ApiResponse<NewsletterDTO> response = newsletterMgmtService.createNewsletterToggle(authUserId, userId,
-					newsletterModel);
+			ApiResponse<NewsletterDTO> response = newsletterMgmtService.createNewsletterToggle(authUserId,
+					newsletterRequest);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -99,13 +103,13 @@ public class NewsletterMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long newsletterId,
-			@RequestParam long userId, @RequestParam String newsletterToggle) {
+			@Valid @RequestBody NewsletterRequest newsletterRequest) {
 
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<NewsletterDTO> response = newsletterMgmtService.updateNewsletterToggle(newsletterId, authUserId,
-					userId, newsletterToggle);
+					newsletterRequest);
 
 			return ResponseEntity.ok(response);
 

@@ -113,7 +113,8 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		AuthPermissionModel storingData = new AuthPermissionModel();
 
 		storingData.setAuthUserInfo(savedUser);
-		storingData.setActionByUserId(actionByUserId);
+		storingData.setActionByUserInfo(actionByUser);
+		;
 		storingData.setAddPermission(PermissionStatus.NO);
 		storingData.setViewAllPermission(PermissionStatus.NO);
 		storingData.setViewPermission(PermissionStatus.NO);
@@ -345,6 +346,9 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	public ApiResponse<AuthUserDTO> updateAuthUser(long actionByUserId, long authUserId,
 			@Valid AuthUserRequest authUserInfo, MultipartFile authUserImage) {
 
+		AuthUserModel actionByUser = authUserRepository.findById(actionByUserId)
+				.orElseThrow(() -> new RuntimeException("Action user not found"));
+
 		Optional<AuthUserModel> optionalUser = authUserRepository.findById(authUserId);
 
 		if (optionalUser.isEmpty()) {
@@ -377,10 +381,18 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		AuthUserModel updatedUser = authUserRepository.save(user);
 
 		// Authorisation permission set by default
-		AuthPermissionModel storingData = new AuthPermissionModel();
+		Optional<AuthPermissionModel> optionalPermission = authPermissionRepository.findByAuthUserInfo(updatedUser);
 
-		storingData.setAuthUserInfo(updatedUser);
-		storingData.setActionByUserId(actionByUserId);
+		AuthPermissionModel storingData;
+
+		if (optionalPermission.isPresent()) {
+			storingData = optionalPermission.get();
+		} else {
+			storingData = new AuthPermissionModel();
+			storingData.setAuthUserInfo(updatedUser);
+		}
+
+		storingData.setActionByUserInfo(actionByUser);
 		storingData.setAddPermission(PermissionStatus.NO);
 		storingData.setViewAllPermission(PermissionStatus.NO);
 		storingData.setViewPermission(PermissionStatus.NO);
@@ -509,22 +521,15 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 	public ApiResponse<AuthPermissionDTO> grantAuthPermission(long authUserId,
 			@Valid AuthPermissionRequest authPermissionRequest) {
 
-		AuthUserModel authUser = authUserRepository.findById(authUserId)
+		AuthUserModel actionByUser = authUserRepository.findById(authUserId)
 				.orElseThrow(() -> new RuntimeException("Auth user not found"));
 
 		Optional<AuthPermissionModel> existingPermission = authPermissionRepository
 				.findByAuthPermissionId(authPermissionRequest.getAuthPermissionId());
 
-		AuthPermissionModel storingData;
+		AuthPermissionModel storingData = existingPermission.get();
 
-		if (existingPermission.isPresent()) {
-			storingData = existingPermission.get();
-		} else {
-			storingData = new AuthPermissionModel();
-			storingData.setAuthUserInfo(authUser);
-		}
-
-		storingData.setActionByUserId(authUserId);
+		storingData.setActionByUserInfo(actionByUser);
 		storingData.setAddPermission(authPermissionRequest.getAddPermission());
 		storingData.setViewAllPermission(authPermissionRequest.getViewAllPermission());
 		storingData.setViewPermission(authPermissionRequest.getViewPermission());

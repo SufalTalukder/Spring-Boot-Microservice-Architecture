@@ -10,21 +10,8 @@ public class NewsletterMapper {
 			return null;
 		}
 
-		return new NewsletterDTO(entity.getNewsletterId(), entity.getAuthUserInfo(), entity.getUserInfo(),
-				entity.getNewsletterToggle(), entity.getNewsletterCreatedAt(), entity.getNewsletterUpdatedAt());
-	}
-
-	public static NewsletterModel toEntity(NewsletterDTO dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		NewsletterModel entity = new NewsletterModel();
-		entity.setNewsletterId(dto.getNewsletterId());
-		entity.setAuthUserInfo(dto.getAuthUserInfo());
-		entity.setUserInfo(dto.getUserInfo());
-		entity.setNewsletterToggle(dto.getNewsletterToggle());
-
-		return entity;
+		return new NewsletterDTO(entity.getNewsletterId(), AuthUserMapper.toDTO(entity.getAuthUserInfo()),
+				UserMapper.toDTO(entity.getUserInfo()), entity.getNewsletterToggle(), entity.getNewsletterCreatedAt(),
+				entity.getNewsletterUpdatedAt());
 	}
 }

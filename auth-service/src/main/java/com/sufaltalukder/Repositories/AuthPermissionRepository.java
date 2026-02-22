@@ -8,9 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.sufaltalukder.Models.AuthPermissionModel;
+import com.sufaltalukder.Models.AuthUserModel;
 
 @Repository
 public interface AuthPermissionRepository extends JpaRepository<AuthPermissionModel, Long> {
+
+	Optional<AuthPermissionModel> findByAuthUserInfo(AuthUserModel updatedUser);
 
 	@Query("""
 				SELECT pm
@@ -21,4 +24,5 @@ public interface AuthPermissionRepository extends JpaRepository<AuthPermissionMo
 	List<AuthPermissionModel> findAllPermissions();
 
 	Optional<AuthPermissionModel> findByAuthPermissionId(long authPermissionId);
+
 }

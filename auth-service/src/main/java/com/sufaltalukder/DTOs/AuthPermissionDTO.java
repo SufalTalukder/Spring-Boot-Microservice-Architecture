@@ -13,7 +13,7 @@ public class AuthPermissionDTO {
 
 	private long authPermissionId;
 	private AuthUserDTO authUserInfo;
-	private long actionByUserId;
+	private AuthUserShallowDTO actionByUserInfo;
 	private PermissionStatus addPermission;
 	private PermissionStatus viewAllPermission;
 	private PermissionStatus viewPermission;
