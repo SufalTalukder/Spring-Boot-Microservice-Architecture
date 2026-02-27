@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sufaltalukder.DTOs.CheckOutDTO;
 import com.sufaltalukder.DTOs.CheckOutHistoryDTO;
+import com.sufaltalukder.DTOs.CheckOutHistoryRequest;
 import com.sufaltalukder.Models.ApiResponse;
-import com.sufaltalukder.Models.CheckOutHistoryModel;
 import com.sufaltalukder.Services.CheckOutHistoryMgmtService;
 import com.sufaltalukder.Utils.AuthJwtUtil;
 import com.sufaltalukder.feign.Services.AddToCartFeignService;
@@ -32,13 +32,13 @@ public class CheckOutHistoryMgmtController {
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
 			@RequestHeader(value = "x-api-secret", required = false) String apiSecret, @RequestParam long userId,
-			@RequestBody CheckOutHistoryModel checkOutHistoryModel) {
+			@RequestBody CheckOutHistoryRequest checkOutHistoryRequest) {
 
 		try {
 			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
 
 			ApiResponse<CheckOutDTO> response = checkOutHistoryMgmtService.createUserCheckOut(authUserId, userId,
-					checkOutHistoryModel);
+					checkOutHistoryRequest);
 
 			if ("not found".equals(response.getStatus())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -46,7 +46,7 @@ public class CheckOutHistoryMgmtController {
 
 			if ("success".equals(response.getStatus())) {
 				// call micro-service via feign client
-				addToCartFeignService.deleteAllUserCarts(checkOutHistoryModel.getAddToCartIds(), userId);
+				addToCartFeignService.deleteAllUserCarts(checkOutHistoryRequest.getAddToCartIds(), userId);
 			}
 
 			return ResponseEntity.ok(response);

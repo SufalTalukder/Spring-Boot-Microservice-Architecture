@@ -1,9 +1,11 @@
 package com.sufaltalukder.Models;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -71,10 +73,12 @@ public class CheckOutHistoryModel {
 	}
 
 	@UpdateTimestamp
-	@Column(name = "payment_datetime")
-	private ZonedDateTime paymentDateTime;
+	@Column(name = "created_at", columnDefinition = "TIMESTAMP", updatable = false)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private Instant paymentDateTime;
 
 	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private ZonedDateTime checkOutHistoryCreatedAt;
+	@Column(name = "updated_at", columnDefinition = "TIMESTAMP")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+	private Instant checkOutHistoryCreatedAt;
 }

@@ -23,8 +23,8 @@ public class CheckOutHistoryMapper {
 		CheckOutHistoryDTO dto = new CheckOutHistoryDTO();
 
 		dto.setCheckOutHistoryId(m.getCheckOutHistoryId());
-		dto.setAuthUserInfo(m.getAuthUserInfo());
-		dto.setUserInfo(m.getUserInfo());
+		dto.setAuthUserInfo(AuthUserMapper.toDTO(m.getAuthUserInfo()));
+		dto.setUserInfo(UserMapper.toDTO(m.getUserInfo()));
 		dto.setAddToCartIds(cartIds);
 		dto.setProductIds(productIds);
 		dto.setProducts(products);

@@ -20,8 +20,10 @@ import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class NewsletterMgmtServiceImpl implements NewsletterMgmtService {
 
 	@Autowired

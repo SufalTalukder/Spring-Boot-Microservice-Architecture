@@ -1,6 +1,5 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,6 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 		addData.setPaymentAmount(totalPaymentAmount);
 		addData.setDeliveryInDays(checkOutHistoryModel.getDeliveryInDays());
 		addData.setOrderStatus(OrderStatus.SUCCESSFUL);
-		addData.setPaymentDateTime(ZonedDateTime.now());
 
 		if (addData.getPaymentMethod() == PaymentMethod.COD) {
 			addData.setPaymentStatus("PAYMENT_PENDING");
@@ -157,7 +155,6 @@ public class CustomerPurchaseServiceImpl implements CustomerPurchaseService {
 
 		data.setOrderStatus(OrderStatus.CANCELLED);
 		data.setPaymentStatus("PAYMENT_RETURN_PENDING");
-		data.setPaymentDateTime(ZonedDateTime.now());
 
 		CheckOutHistoryModel saved = checkOutHistoryRepository.save(data);
 

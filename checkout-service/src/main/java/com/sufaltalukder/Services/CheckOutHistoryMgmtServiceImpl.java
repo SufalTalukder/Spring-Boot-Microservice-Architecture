@@ -1,6 +1,5 @@
 package com.sufaltalukder.Services;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.CheckOutDTO;
 import com.sufaltalukder.DTOs.CheckOutHistoryDTO;
+import com.sufaltalukder.DTOs.CheckOutHistoryRequest;
 import com.sufaltalukder.DTOs.ProductDTO;
 import com.sufaltalukder.Mappers.CheckOutHistoryMapper;
 import com.sufaltalukder.Mappers.ProductMapper;
@@ -46,7 +46,7 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 
 	@Override
 	public ApiResponse<CheckOutDTO> createUserCheckOut(long authUserId, long userId,
-			CheckOutHistoryModel checkOutHistoryModel) {
+			CheckOutHistoryRequest checkOutHistoryRequest) {
 
 		CheckOutHistoryModel addData = new CheckOutHistoryModel();
 		double totalPaymentAmount = 0;
@@ -58,7 +58,7 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 
 		StringBuilder cartIdsBuilder = new StringBuilder();
 
-		for (String cartIdStr : checkOutHistoryModel.getAddToCartIds().split(",")) {
+		for (String cartIdStr : checkOutHistoryRequest.getAddToCartIds().split(",")) {
 
 			if (cartIdStr.isBlank())
 				continue;
@@ -86,18 +86,17 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 		addData.setAuthUserInfo(authUser);
 		addData.setUserInfo(user);
 		addData.setAddToCartIds(cartIds);
-		addData.setPaymentAddress(checkOutHistoryModel.getPaymentAddress());
-		addData.setShippingAddress(checkOutHistoryModel.getShippingAddress());
-		addData.setShippingMethod(checkOutHistoryModel.getShippingMethod());
-		addData.setPaymentMethod(checkOutHistoryModel.getPaymentMethod());
+		addData.setPaymentAddress(checkOutHistoryRequest.getPaymentAddress());
+		addData.setShippingAddress(checkOutHistoryRequest.getShippingAddress());
+		addData.setShippingMethod(checkOutHistoryRequest.getShippingMethod());
+		addData.setPaymentMethod(checkOutHistoryRequest.getPaymentMethod());
 		addData.setPaymentAmount(totalPaymentAmount);
-		addData.setDeliveryInDays(checkOutHistoryModel.getDeliveryInDays());
-		addData.setPaymentDateTime(ZonedDateTime.now());
+		addData.setDeliveryInDays(checkOutHistoryRequest.getDeliveryInDays());
 
-		if (checkOutHistoryModel.getPaymentMethod() == PaymentMethod.CCAVENUE
-				|| checkOutHistoryModel.getPaymentMethod() == PaymentMethod.BANK_RTGS_NEFT_TRANSFER) {
+		if (checkOutHistoryRequest.getPaymentMethod() == PaymentMethod.CCAVENUE
+				|| checkOutHistoryRequest.getPaymentMethod() == PaymentMethod.BANK_RTGS_NEFT_TRANSFER) {
 			addData.setPaymentStatus("PAYMENT_SUCCESS");
-		} else if (checkOutHistoryModel.getPaymentMethod() == PaymentMethod.COD) {
+		} else if (checkOutHistoryRequest.getPaymentMethod() == PaymentMethod.COD) {
 			addData.setPaymentStatus("PAYMENT_PENDING");
 		}
 

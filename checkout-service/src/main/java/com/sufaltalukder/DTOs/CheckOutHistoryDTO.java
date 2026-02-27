@@ -1,10 +1,8 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 
-import com.sufaltalukder.Models.AuthUserModel;
-import com.sufaltalukder.Models.UserModel;
 import com.sufaltalukder.Models.CheckOutHistoryModel.OrderStatus;
 import com.sufaltalukder.Models.CheckOutHistoryModel.PaymentMethod;
 import com.sufaltalukder.Models.CheckOutHistoryModel.ShippingMethod;
@@ -17,19 +15,19 @@ import lombok.*;
 public class CheckOutHistoryDTO {
 
 	private long checkOutHistoryId;
-	private AuthUserModel authUserInfo;
-	private UserModel userInfo;
+	private AuthUserDTO authUserInfo;
+	private UserDTO userInfo;
 	private List<String> addToCartIds;
 	private List<String> productIds;
 	private List<ProductDTO> products;
 	private String paymentAddress;
-	private String shippingAddress;
+	private String shippingAddress;	
 	private ShippingMethod shippingMethod;
 	private PaymentMethod paymentMethod;
 	private double paymentAmount;
 	private String deliveryInDays;
 	private String paymentStatus;
 	private OrderStatus orderStatus;
-	private ZonedDateTime paymentDateTime;
-	private ZonedDateTime checkOutHistoryCreatedAt;
+	private Instant paymentDateTime;
+	private Instant checkOutHistoryCreatedAt;
 }

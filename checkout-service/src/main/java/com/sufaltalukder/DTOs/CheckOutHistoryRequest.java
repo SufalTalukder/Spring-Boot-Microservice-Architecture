@@ -1,6 +1,5 @@
 package com.sufaltalukder.DTOs;
 
-import java.time.Instant;
 import java.util.List;
 
 import com.sufaltalukder.Models.AuthUserModel;
@@ -12,15 +11,13 @@ import com.sufaltalukder.Models.CheckOutHistoryModel.ShippingMethod;
 import lombok.*;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CheckOutDTO {
+public class CheckOutHistoryRequest {
 
-	private long checkOutHistoryId;
 	private AuthUserModel authUserInfo;
 	private UserModel userInfo;
-	private List<String> addToCartIds;
-	private List<String> productIds;
+	private String addToCartIds;
+	private String productIds;
+	private List<ProductDTO> products;
 	private String paymentAddress;
 	private String shippingAddress;
 	private ShippingMethod shippingMethod;
@@ -29,6 +26,4 @@ public class CheckOutDTO {
 	private String deliveryInDays;
 	private String paymentStatus;
 	private OrderStatus orderStatus;
-	private Instant paymentDateTime;
-	private Instant checkOutHistoryCreatedAt;
 }
