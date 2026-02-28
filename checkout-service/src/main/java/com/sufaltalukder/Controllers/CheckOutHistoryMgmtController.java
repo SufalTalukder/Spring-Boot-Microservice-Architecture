@@ -79,4 +79,29 @@ public class CheckOutHistoryMgmtController {
 					.body(new ApiResponse<>("error", "Unauthorized access.", null));
 		}
 	}
+
+	@GetMapping("/get-checkout-details")
+	public ResponseEntity<ApiResponse<CheckOutHistoryDTO>> getCheckoutDetails(
+			@RequestHeader(value = "authToken", required = false) String authToken,
+			@RequestHeader(value = "x-api-key", required = false) String apiKey,
+			@RequestHeader(value = "x-api-secret", required = false) String apiSecret,
+			@RequestParam long checkOutHistoryId) {
+
+		try {
+			long authUserId = authJwtUtil.extractAuthUserId(authToken, apiKey, apiSecret);
+
+			ApiResponse<CheckOutHistoryDTO> response = checkOutHistoryMgmtService.getCheckoutDetails(authUserId,
+					checkOutHistoryId);
+
+			if ("not found".equals(response.getStatus())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
+
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ApiResponse<>("error", "Unauthorized access.", null));
+		}
+	}
 }

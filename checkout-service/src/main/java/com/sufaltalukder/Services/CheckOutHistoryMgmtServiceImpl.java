@@ -11,16 +11,19 @@ import com.sufaltalukder.DTOs.CheckOutHistoryRequest;
 import com.sufaltalukder.DTOs.ProductDTO;
 import com.sufaltalukder.Mappers.CheckOutHistoryMapper;
 import com.sufaltalukder.Mappers.ProductMapper;
+import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.CheckOutHistoryModel;
 import com.sufaltalukder.Models.CheckOutHistoryModel.PaymentMethod;
 import com.sufaltalukder.Models.ProductAddToCartModel;
 import com.sufaltalukder.Models.UserModel;
+import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
 import com.sufaltalukder.Repositories.AuthUserRepository;
 import com.sufaltalukder.Repositories.CheckOutHistoryRepository;
 import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.UserRepository;
+import com.sufaltalukder.feign.Services.ActionLogFeignService;
 import com.sufaltalukder.feign.Services.AddToCartFeignService;
 
 import jakarta.transaction.Transactional;
@@ -43,6 +46,9 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 
 	@Autowired
 	private AddToCartFeignService addToCartFeignService;
+
+	@Autowired
+	private ActionLogFeignService actionLogFeignService; // via feign client
 
 	@Override
 	public ApiResponse<CheckOutDTO> createUserCheckOut(long authUserId, long userId,
@@ -136,5 +142,41 @@ public class CheckOutHistoryMgmtServiceImpl implements CheckOutHistoryMgmtServic
 		}).toList();
 
 		return new ApiResponse<>("success", "All checkout historie(s) fetched successfully.", dtos);
+	}
+
+	@Override
+	public ApiResponse<CheckOutHistoryDTO> getCheckoutDetails(long authUserId, long checkOutHistoryId) {
+
+		Optional<CheckOutHistoryModel> isCheckOutIdExists = checkOutHistoryRepository
+				.findByCheckOutHistoryId(checkOutHistoryId);
+
+		if (isCheckOutIdExists.isEmpty()) {
+			return new ApiResponse<>("not found", "Checkout ID not found.", null);
+		}
+
+		CheckOutHistoryModel checkoutModel = isCheckOutIdExists.get();
+
+		// Parse productIds String → List<Long>
+		List<Long> productIds = List.of();
+
+		if (checkoutModel.getProductIds() != null && !checkoutModel.getProductIds().isBlank()) {
+			productIds = Arrays.stream(checkoutModel.getProductIds().split(",")).map(String::trim)
+					.filter(id -> !id.isEmpty()).map(Long::valueOf).toList();
+		}
+
+		// Fetch product entities
+		List<ProductDTO> productDTOs = productIds.isEmpty() ? List.of()
+				: productRepository.findByProductIdIn(productIds).stream().map(ProductMapper::toDTO).toList();
+
+		// Push data inside actionLogFeignService
+		ActionLogModel actionLogData = new ActionLogModel();
+		actionLogData.setActionByAuthUserId(authUserId);
+		actionLogData.setAuthUserId(authUserId);
+		actionLogData.setActionLogMethod(ActionLogMethod.GET);
+		actionLogData.setActionLogMessage("Checkout details fetched successfully.");
+		actionLogFeignService.addActionLog(actionLogData);
+
+		return new ApiResponse<>("success", "Checkout details fetched successfully.",
+				CheckOutHistoryMapper.toDTO(checkoutModel, productDTOs));
 	}
 }

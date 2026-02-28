@@ -1,6 +1,7 @@
 package com.sufaltalukder.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,7 @@ public interface CheckOutHistoryRepository extends JpaRepository<CheckOutHistory
 
 	@Query("""
 				SELECT c
-				FROM CheckOutHistoryModel c
+				 FROM CheckOutHistoryModel c
 				LEFT JOIN FETCH c.userInfo
 				WHERE c.checkOutHistoryId = :id
 				AND c.userInfo.userId = :userId
@@ -25,19 +26,22 @@ public interface CheckOutHistoryRepository extends JpaRepository<CheckOutHistory
 
 	@Query("""
 			    SELECT DISTINCT ch
-			    FROM CheckOutHistoryModel ch
+			     FROM CheckOutHistoryModel ch
 			    LEFT JOIN FETCH ch.authUserInfo
 			    LEFT JOIN FETCH ch.userInfo
+			    ORDER BY ch.checkOutHistoryCreatedAt DESC
 			""")
 	List<CheckOutHistoryModel> findAllCheckoutHistories();
 
 	@Query("""
 				SELECT c
-				FROM CheckOutHistoryModel c
+				 FROM CheckOutHistoryModel c
 				LEFT JOIN FETCH c.authUserInfo
 				LEFT JOIN FETCH c.userInfo
 				WHERE c.userInfo.userId = :userId
 			""")
 	Page<CheckOutHistoryModel> findCheckoutHistoriesOfUser(@Param("userId") long userId, Pageable pageable);
+
+	Optional<CheckOutHistoryModel> findByCheckOutHistoryId(long checkOutHistoryId);
 
 }

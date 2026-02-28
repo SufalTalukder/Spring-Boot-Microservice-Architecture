@@ -14,4 +14,6 @@ public interface CheckOutHistoryMgmtService {
 
 	ApiResponse<List<CheckOutHistoryDTO>> getAllCheckOutHistories();
 
+	ApiResponse<CheckOutHistoryDTO> getCheckoutDetails(long authUserId, long checkOutHistoryId);
+
 }
