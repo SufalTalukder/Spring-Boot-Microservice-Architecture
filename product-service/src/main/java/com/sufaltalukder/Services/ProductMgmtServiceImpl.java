@@ -19,6 +19,7 @@ import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthUserModel;
 import com.sufaltalukder.Models.CategoryModel;
 import com.sufaltalukder.Models.LanguageModel;
+import com.sufaltalukder.Models.NotificationModel;
 import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Models.SubCategoryModel;
 import com.sufaltalukder.Models.ActionLogModel.ActionLogMethod;
@@ -28,6 +29,7 @@ import com.sufaltalukder.Repositories.LanguageRepository;
 import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.SubCategoryRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
+import com.sufaltalukder.feign.Services.NotificationFeignService;
 
 @Service
 public class ProductMgmtServiceImpl implements ProductMgmtService {
@@ -49,6 +51,9 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // via feign client
+
+	@Autowired
+	private NotificationFeignService notificationFeignService;
 
 	private final String UPLOAD_DIR = "uploads";
 
@@ -105,6 +110,15 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		actionLogData.setActionLogMessage("Product created successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(0);
+		notificationData.setNotificationTitle("New Product Added");
+		notificationData
+				.setNotificationDescription("Product #" + savedData.getProductId() + " has been created successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
+
 		return new ApiResponse<>("success", "Product created successfully.", ProductMapper.toDTO(savedData));
 	}
 
@@ -129,6 +143,7 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 
 	@Override
 	public ApiResponse<List<ProductDTO>> createMultipleProduct(long authUserId, List<ProductModel> productModels) {
+
 		if (productModels == null || productModels.isEmpty()) {
 			return new ApiResponse<>("not found", "Product list is empty.", null);
 		}
@@ -256,11 +271,21 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		actionLogData.setActionLogMessage("Product updated successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(0);
+		notificationData.setNotificationTitle("Product Updated");
+		notificationData.setNotificationDescription(
+				"Product #" + updatedData.getProductId() + " has been updated successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
+
 		return new ApiResponse<>("success", "Product updated successfully.", ProductMapper.toDTO(updatedData));
 	}
 
 	@Override
 	public ApiResponse<ProductDTO> deleteProduct(long authUserId, long productId) {
+
 		Optional<ProductModel> isProductIdExist = productRepository.findById(productId);
 
 		if (isProductIdExist.isEmpty()) {
@@ -274,6 +299,14 @@ public class ProductMgmtServiceImpl implements ProductMgmtService {
 		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
 		actionLogData.setActionLogMessage("Product deleted successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
+
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(0);
+		notificationData.setNotificationTitle("Product Deleted");
+		notificationData.setNotificationDescription("Product #" + productId + " has been deleted successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		productRepository.deleteById(productId);
 		return new ApiResponse<>("success", "Product deleted successfully.", null);

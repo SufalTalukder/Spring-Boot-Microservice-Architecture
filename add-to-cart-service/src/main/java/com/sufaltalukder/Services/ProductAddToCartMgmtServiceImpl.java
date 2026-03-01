@@ -10,6 +10,7 @@ import com.sufaltalukder.Mappers.ProductAddToCartMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthUserModel;
+import com.sufaltalukder.Models.NotificationModel;
 import com.sufaltalukder.Models.ProductAddToCartModel;
 import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Models.UserModel;
@@ -19,6 +20,7 @@ import com.sufaltalukder.Repositories.ProductAddToCartRepository;
 import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
+import com.sufaltalukder.feign.Services.NotificationFeignService;
 
 @Service
 public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtService {
@@ -37,6 +39,9 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // Via feign client
+
+	@Autowired
+	private NotificationFeignService notificationFeignService;
 
 	@Override
 	public ApiResponse<ProductAddToCartDTO> addUserCart(long authUserId, long userId, long productId,
@@ -63,6 +68,8 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 		savingData.setQuantity(productAddToCartModel.getQuantity());
 		savingData.setEachProductTotalPrice(productAddToCartModel.getEachProductTotalPrice());
 
+		ProductAddToCartModel savedData = productAddToCartRepository.save(savingData);
+
 		// Push data inside actionLogFeignService
 		ActionLogModel actionLogData = new ActionLogModel();
 		actionLogData.setActionByAuthUserId(authUserId);
@@ -71,7 +78,14 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 		actionLogData.setActionLogMessage("Cart added successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
 
-		ProductAddToCartModel savedData = productAddToCartRepository.save(savingData);
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(userId);
+		notificationData.setNotificationTitle("User Cart Added");
+		notificationData.setNotificationDescription(
+				"User cart #" + savedData.getAddToCartId() + " has been added successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		return new ApiResponse<>("success", "Cart added successfully.", ProductAddToCartMapper.toDTO(savedData));
 	}
@@ -140,6 +154,14 @@ public class ProductAddToCartMgmtServiceImpl implements ProductAddToCartMgmtServ
 		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
 		actionLogData.setActionLogMessage("Cart removed successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
+
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(userId);
+		notificationData.setNotificationTitle("User Cart Removed");
+		notificationData.setNotificationDescription("User cart #" + addToCartId + " has been removed successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		return new ApiResponse<>("success", "Cart removed successfully.", null);
 	}

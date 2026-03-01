@@ -11,6 +11,7 @@ import com.sufaltalukder.Mappers.ProductAddToFavouriteMapper;
 import com.sufaltalukder.Models.ActionLogModel;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.AuthUserModel;
+import com.sufaltalukder.Models.NotificationModel;
 import com.sufaltalukder.Models.ProductAddToFavouriteModel;
 import com.sufaltalukder.Models.ProductModel;
 import com.sufaltalukder.Models.UserModel;
@@ -20,6 +21,7 @@ import com.sufaltalukder.Repositories.ProductAddToFavouriteRepository;
 import com.sufaltalukder.Repositories.ProductRepository;
 import com.sufaltalukder.Repositories.UserRepository;
 import com.sufaltalukder.feign.Services.ActionLogFeignService;
+import com.sufaltalukder.feign.Services.NotificationFeignService;
 
 @Service
 public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouriteMgmtService {
@@ -38,6 +40,9 @@ public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouri
 
 	@Autowired
 	private ActionLogFeignService actionLogFeignService; // Via feign client
+
+	@Autowired
+	private NotificationFeignService notificationFeignService;
 
 	@Override
 	public ApiResponse<ProductAddToFavouriteDTO> createUserFavourite(long authUserId, long userId, long productId) {
@@ -71,6 +76,15 @@ public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouri
 		actionLogData.setActionLogMethod(ActionLogMethod.POST);
 		actionLogData.setActionLogMessage("Add to favourite successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
+
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(userId);
+		notificationData.setNotificationTitle("User Favourite Added");
+		notificationData.setNotificationDescription(
+				"User favourite #" + savedData.getAddToFavouriteId() + " has been added successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		return new ApiResponse<>("success", "Add to favourite successfully.",
 				ProductAddToFavouriteMapper.toDTO(savedData));
@@ -155,8 +169,16 @@ public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouri
 		actionLogData.setAuthUserId(authUserId);
 		actionLogData.setActionLogMethod(ActionLogMethod.PUT);
 		actionLogData.setActionLogMessage("User favourite updated successfully.");
-
 		actionLogFeignService.addActionLog(actionLogData);
+
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(userId);
+		notificationData.setNotificationTitle("User Favourite Updated");
+		notificationData.setNotificationDescription(
+				"User favourite #" + savedData.getAddToFavouriteId() + " has been updated successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		return new ApiResponse<>("success", "User favourite updated successfully.",
 				ProductAddToFavouriteMapper.toDTO(savedData));
@@ -190,6 +212,15 @@ public class ProductAddToFavouriteMgmtServiceImpl implements ProductAddToFavouri
 		actionLogData.setActionLogMethod(ActionLogMethod.DELETE);
 		actionLogData.setActionLogMessage("Favourite removed successfully.");
 		actionLogFeignService.addActionLog(actionLogData);
+
+		// Push data inside notificationFeignService
+		NotificationModel notificationData = new NotificationModel();
+		notificationData.setAuthUserId(authUserId);
+		notificationData.setUserId(userId);
+		notificationData.setNotificationTitle("User Favourite Removed");
+		notificationData
+				.setNotificationDescription("User favourite #" + addToFavouriteId + " has been removed successfully.");
+		notificationFeignService.pushMgmtNotification(notificationData);
 
 		return new ApiResponse<>("success", "Favourite removed successfully.", null);
 	}

@@ -12,8 +12,8 @@ import lombok.*;
 public class NotificationDTO {
 
 	private long notificationId;
-	private long authUserId;
-	private long userId;
+	private AuthUserDTO authUserInfo;
+	private UserDTO userInfo;
 	private String notificationTitle;
 	private String notificationDescription;
 	private MarkAsRead markAsRead;

@@ -7,27 +7,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sufaltalukder.DTOs.NotificationDTO;
+import com.sufaltalukder.DTOs.NotificationRequest;
 import com.sufaltalukder.Mappers.NotificationMapper;
 import com.sufaltalukder.Models.ApiResponse;
 import com.sufaltalukder.Models.NotificationModel;
 import com.sufaltalukder.Models.NotificationModel.MarkAsRead;
 import com.sufaltalukder.Repositories.NotificationRepository;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @Service
-public class NotificationServiceImpl implements NotificationService {
+@RequiredArgsConstructor
+public class NotificationMgmtServiceImpl implements NotificationMgmtService {
 
 	@Autowired
 	private NotificationRepository notificationRepository;
 
 	@Override
-	public ApiResponse<NotificationDTO> pushInAppNotification(NotificationModel notificationModel) {
+	public ApiResponse<NotificationDTO> pushMgmtNotification(@Valid NotificationRequest notificationRequest) {
 
 		NotificationModel savedData = new NotificationModel();
 
-		savedData.setAuthUserId(0);
-		savedData.setUserId(notificationModel.getUserId());
-		savedData.setNotificationTitle(notificationModel.getNotificationTitle());
-		savedData.setNotificationDescription(notificationModel.getNotificationDescription());
+		savedData.setAuthUserId(notificationRequest.getAuthUserId());
+		savedData.setUserId(notificationRequest.getUserId());
+		savedData.setNotificationTitle(notificationRequest.getNotificationTitle());
+		savedData.setNotificationDescription(notificationRequest.getNotificationDescription());
 		savedData.setMarkAsRead(MarkAsRead.UNREAD);
 
 		return new ApiResponse<>("success", "Notification pushed successfully.",
@@ -35,9 +40,9 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public ApiResponse<List<NotificationDTO>> getAllPushedInAppNotifications(long userId) {
+	public ApiResponse<List<NotificationDTO>> getAllMgmtNotifications() {
 
-		List<NotificationModel> notifications = notificationRepository.findAllNotificationsByUserId(userId);
+		List<NotificationModel> notifications = notificationRepository.findAllNotifications();
 
 		if (notifications.isEmpty()) {
 			return new ApiResponse<>("not found", "No notification(s) found.", null);
@@ -49,17 +54,30 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public ApiResponse<NotificationDTO> removeInAppNotification(long userId, long notificationId) {
+	public ApiResponse<NotificationDTO> markAsReadMgmtNotification(long authUserId, long notificationId) {
 
 		Optional<NotificationModel> notification = notificationRepository.findByNotificationId(notificationId);
 
-		if (notification == null) {
+		if (notification.isEmpty()) {
 			return new ApiResponse<>("not found", "Notification ID not found.", null);
 		}
 
-		// verify that notification belongs to this user
-		if (notification.get().getUserId() != userId) {
-			return new ApiResponse<>("error", "Unauthorized — cannot delete others' notifications.", null);
+		NotificationModel updateData = notification.get();
+		updateData.setAuthUserId(authUserId);
+		updateData.setUserId(0);
+		updateData.setMarkAsRead(MarkAsRead.READ);
+
+		return new ApiResponse<>("success", "All notification(s) fetched successfully.",
+				NotificationMapper.toDTO(updateData));
+	}
+
+	@Override
+	public ApiResponse<NotificationDTO> removeMgmtNotification(long notificationId) {
+
+		Optional<NotificationModel> notification = notificationRepository.findByNotificationId(notificationId);
+
+		if (notification.isEmpty()) {
+			return new ApiResponse<>("not found", "Notification ID not found.", null);
 		}
 
 		notificationRepository.deleteById(notificationId);
