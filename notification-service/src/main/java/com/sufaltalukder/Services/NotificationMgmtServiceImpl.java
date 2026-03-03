@@ -66,9 +66,11 @@ public class NotificationMgmtServiceImpl implements NotificationMgmtService {
 		updateData.setAuthUserId(authUserId);
 		updateData.setUserId(0);
 		updateData.setMarkAsRead(MarkAsRead.READ);
+		
+		NotificationModel saveData = notificationRepository.save(updateData);
 
-		return new ApiResponse<>("success", "All notification(s) fetched successfully.",
-				NotificationMapper.toDTO(updateData));
+		return new ApiResponse<>("success", "Notification marked as read successfully.",
+				NotificationMapper.toDTO(saveData));
 	}
 
 	@Override

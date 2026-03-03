@@ -59,7 +59,7 @@ public class NotificationMgmtController {
 		}
 	}
 
-	@PatchMapping("/update-mgmt-notification")
+	@PutMapping("/update-mgmt-notification")
 	public ResponseEntity<ApiResponse<NotificationDTO>> markAsReadMgmtNotification(
 			@RequestHeader(value = "authToken", required = false) String authToken,
 			@RequestHeader(value = "x-api-key", required = false) String apiKey,
