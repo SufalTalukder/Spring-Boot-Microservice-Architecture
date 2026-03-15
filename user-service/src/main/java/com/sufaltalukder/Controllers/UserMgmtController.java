@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +28,7 @@ public class UserMgmtController {
 	@Autowired
 	private AuthJwtUtil authJwtUtil;
 
+	@PreAuthorize("hasRole('SUPER_ADMIN')")
 	@PostMapping(value = "/create-user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<UserDTO>> createUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,
@@ -51,6 +53,7 @@ public class UserMgmtController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
 	@GetMapping("/get-user-details")
 	public ResponseEntity<ApiResponse<UserDTO>> fetchUserDetails(
 			@RequestHeader(value = "authToken", required = false) String authToken,
@@ -73,6 +76,7 @@ public class UserMgmtController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
 	@GetMapping("/get-users-list")
 	public ResponseEntity<ApiResponse<List<UserDTO>>> fetchUsersList(
 			@RequestHeader(value = "authToken", required = false) String authToken,
@@ -95,6 +99,7 @@ public class UserMgmtController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
 	@PostMapping("/upload-user-image")
 	public ResponseEntity<ApiResponse<String>> uploadUserImage(
 			@RequestHeader(value = "authToken", required = false) String authToken,
@@ -118,6 +123,7 @@ public class UserMgmtController {
 		}
 	}
 
+	@PreAuthorize("hasRole('SUPER_ADMIN')")
 	@PatchMapping(value = "/update-user-details", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<UserDTO>> updateUserDetail(
 			@RequestHeader(value = "authToken", required = false) String authToken,
@@ -142,6 +148,7 @@ public class UserMgmtController {
 		}
 	}
 
+	@PreAuthorize("hasRole('SUPER_ADMIN')")
 	@DeleteMapping("/delete-user")
 	public ResponseEntity<ApiResponse<UserDTO>> deleteUser(
 			@RequestHeader(value = "authToken", required = false) String authToken,

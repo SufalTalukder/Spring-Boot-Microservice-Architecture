@@ -178,8 +178,8 @@ public class AuthUserMgmtController {
 		}
 	}
 
-	/** Only SUPER_ADMIN can list all users. */
-	@PreAuthorize("hasRole('SUPER_ADMIN')")
+	/** Both can see list of auth users. */
+	@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
 	@GetMapping("/get-all-auth-users")
 	public ResponseEntity<ApiResponse<List<AuthUserDTO>>> getAllAuthUsers(
 			@RequestHeader(value = "authToken", required = false) String authToken,
