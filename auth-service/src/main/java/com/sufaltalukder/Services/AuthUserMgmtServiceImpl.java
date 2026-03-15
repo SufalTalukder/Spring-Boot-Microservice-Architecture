@@ -175,7 +175,8 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		actionLogFeignService.addActionLog(actionLogData);
 
 		// Generate JWT
-		String accessToken = authJwtUtil.generateAccessToken(user.getAuthUserEmailAddress(), user.getAuthUserId());
+		String accessToken = authJwtUtil.generateAccessToken(user.getAuthUserEmailAddress(), user.getAuthUserId(),
+				user.getAuthUserType().name());
 
 		String refreshToken = authJwtUtil.generateRefreshToken(user.getAuthUserId());
 
@@ -189,7 +190,6 @@ public class AuthUserMgmtServiceImpl implements AuthUserMgmtService {
 		authUserRefreshTokenRepository.save(refreshTokenModel);
 
 		return new ApiResponse<>("success", "Login successfully.", new AuthTokenResponse(accessToken, refreshToken));
-
 	}
 
 	private void saveAudit(AuthUserModel user, HttpServletRequest request, String loginStatus, String authMethod,
