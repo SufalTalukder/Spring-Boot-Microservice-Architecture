@@ -14,7 +14,7 @@ import lombok.Data;
 public class CategoryModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long categoryId;
 
 	@Column(name = "auth_user_id", nullable = false)

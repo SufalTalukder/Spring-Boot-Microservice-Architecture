@@ -36,6 +36,9 @@
         <module>user-service</module>
         <module>api-gateway</module>
         <module>discovery-service</module>
+        <module>auth-service</module>
+        <module>notification-service</module>
+        <module>support-service</module>
     </modules>
 
     <properties>

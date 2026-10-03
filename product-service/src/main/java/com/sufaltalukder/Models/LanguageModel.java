@@ -14,7 +14,7 @@ import lombok.Data;
 public class LanguageModel {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long languageId;
 
 	@Column(name = "auth_user_Id", nullable = false)

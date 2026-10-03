@@ -31,7 +31,7 @@ public class AuthUserModel {
 	private String authUserImage;
 
 	@Column(name = "action_by_user_id")
-	private long actionByUserId;
+	private Long actionByUserId;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "auth_user_status", nullable = false)
