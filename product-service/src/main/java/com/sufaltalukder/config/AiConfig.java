@@ -9,9 +9,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AiConfig {
 
+    // Vector Store Configuration (For Storing Product Embeddings)
     @Bean
     public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        // SimpleVectorStore মেমোরিতে ডাটা সেভ রাখে (বিগিনারদের জন্য বেস্ট)
         return new SimpleVectorStore(embeddingModel);
+    }
+
+    // Memory Configuration (For Chat History)
+    @Bean
+    public org.springframework.ai.chat.memory.ChatMemory chatMemory() {
+        return new org.springframework.ai.chat.memory.InMemoryChatMemory();
     }
 }
